@@ -32,7 +32,3 @@ def simulacion(letras,probabilidades,len = 10):
                 indexLetra = index
             valAnterior = p
         print(letras[indexLetra])
-letras,probabilidades = generarListaParalelas("alado")
-print(letras)
-print(probabilidades)
-simulacion(letras,probabilidades)
