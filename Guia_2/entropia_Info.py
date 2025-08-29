@@ -6,6 +6,7 @@
 
 import math
 import cadenas
+
 def info(val): # preguntar
     if val == 0:
         return 0
@@ -16,6 +17,7 @@ def generarListaInfo(lista):
     return [info(val) for val in lista]
 
 #b
+
 def calcularEntropia(listaP,listaI):
     H = 0
     for i in range(len(listaI)): #preguntar
