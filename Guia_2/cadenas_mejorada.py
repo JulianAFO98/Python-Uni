@@ -23,13 +23,20 @@ def acumularProbabilidades(probabilidades):
         acumuladas.append(total)
     return acumuladas
 
-def simulacion(letras,probabilidades,len = 10):
+def simulacion(letras,probabilidades,n = 10):
     probabilidadesAcum = acumularProbabilidades(probabilidades)
-    for _ in range(len):
+    resultado = []
+    for _ in range(n):
         valAnterior = 0
+        indexLetra = len(letras) - 1
         randomNum = random.random()
         for index,p in enumerate(probabilidadesAcum):
             if valAnterior<=randomNum and randomNum<p:
                 indexLetra = index
             valAnterior = p
-        print(letras[indexLetra])
+        resultado.append(letras[indexLetra])
+    return "".join(resultado)
+
+
+letras,probabilidades = generarListaParalelas("ABDAACAABACADAABDAADABDAAABDCDCDCDC")
+print(letras,probabilidades)

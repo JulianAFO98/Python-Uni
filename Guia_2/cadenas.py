@@ -1,4 +1,12 @@
-
+"""
+Implementar funciones en Python que resuelvan lo siguiente:
+a. Dada una cadena de caracteres que representa un mensaje emitido por una fuente
+de memoria nula, devolver dos listas paralelas que contengan: el alfabeto de la
+fuente y las probabilidades de cada símbolo.
+b. Dada una lista que contenga el alfabeto de una fuente y otra con las probabilidades
+de cada símbolo, simular la generación de una cadena de caracteres emitida por
+esa fuente
+"""
 import random
 
 def generarListaParalelas(cadena):
@@ -22,13 +30,18 @@ def acumularProbabilidades(probabilidades):
         valAnterior=probabilidades[i]
     return probabilidades
 
-def simulacion(letras,probabilidades,len = 10):
+def simulacion(letras,probabilidades,n = 10):
     probabilidadesAcum = acumularProbabilidades(probabilidades)
-    for _ in range(len):
+    resultado = []
+    for _ in range(n):
         valAnterior = 0
+        indexLetra = len(letras) - 1
         randomNum = random.random()
         for index,p in enumerate(probabilidadesAcum):
             if valAnterior<=randomNum and randomNum<p:
                 indexLetra = index
             valAnterior = p
-        print(letras[indexLetra])
+        resultado.append(letras[indexLetra])
+    return "".join(resultado)
+
+

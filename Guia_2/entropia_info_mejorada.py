@@ -25,5 +25,4 @@ def calcularEntropiaBinaria(w):
     return calcularEntropia([w,1-w])
 
 
-H = calcularEntropiaBinaria(0.12345)
-print(round(H, 2))
+
