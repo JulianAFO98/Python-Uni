@@ -6,22 +6,22 @@
 
 import math
 import cadenas
-def info(val): # preguntar
+def info(val,base): # preguntar
     if val == 0:
         return 0
-    return -math.log(val,2)
+    return -math.log(val,base)
 
 #a
-def generarListaInfo(lista):
-    return [info(val) for val in lista]
+def generarListaInfo(lista,base):
+    return [info(val,base) for val in lista]
 
 #b
-def calcularEntropia(listaP):
-    return sum(p * info(p) for p in listaP)
+def calcularEntropia(listaP,base):
+    return sum(p * info(p,base) for p in listaP)
 
 
 
-def calcularEntropiaBinaria(w):
+def calcularEntropiaBinaria(w,base):
     return calcularEntropia([w,1-w])
 
 
