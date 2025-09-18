@@ -32,6 +32,12 @@ def calcular_inecuacion_kraft(cadena_codigo,lista_longitudes):
         suma+=r ** (-lista_longitudes[i])
     return suma
 
+def es_instantaneo(codigo):
+    for i, palabra in enumerate(codigo):
+        for j, otra in enumerate(codigo):
+            if i != j and otra.startswith(palabra):
+                return False
+    return True
 
 def info(val,base): 
     if val == 0:
@@ -64,12 +70,19 @@ def calcular_longitud_media_codigo(palabras_codigo,probabilidades):
     lista_longitudes = generar_lista_longitudes(palabras_codigo)
     return sum(probabilidades[i] * lista_longitudes[i] for i in range(len(palabras_codigo)))
 
-def es_codigo_compacto(codigos, D=2):
-    suma_kraft = 0
-    for palabra in codigos:
-        suma_kraft += 1 / (D ** len(palabra))
+def es_codigo_compacto(codigo,probs):
+    suma_kraft = calcular_inecuacion_kraft(obtener_cadena_alfabeto_codigo(codigo),generar_lista_longitudes(codigo))
 
-    return suma_kraft == 1
+    if suma_kraft > 1:
+        return False 
+
+    entropia = calcular_entropia_fuente_codigo(codigo,probs)
+    L = calcular_longitud_media_codigo(codigo,probs)
+    
+    if(not es_instantaneo(codigo)):
+        return False
+    
+    return L>=entropia and L<(entropia+1)
 
 def generar_mensaje(N, codigos, probs):
  
@@ -109,22 +122,25 @@ informaciones(lista,probs)
 """
 
 """
+
 15)
+"""
+probs = [0.1, 0.5, 0.1, 0.2,0.05,0.05]
 
 lista = ["==","<","<=",">",">=","<>"]
-print(es_codigo_compacto(lista,3))
+print(es_codigo_compacto(lista,probs))
 lista = [")","[]","]]","([","[()]","([)]"]
-print(es_codigo_compacto(lista,4))
+print(es_codigo_compacto(lista,probs))
 lista = ["/","*","-","*","++","+-"]
-print(es_codigo_compacto(lista,4))
+print(es_codigo_compacto(lista,probs))
 lista = [".,",";",",,",":","...",",:;"]
-print(es_codigo_compacto(lista,4))
+print(es_codigo_compacto(lista,probs))
 
-print(calcular_inecuacion_kraft(obtener_cadena_alfabeto_codigo(lista),generar_lista_longitudes(lista)))
+
 """
-
 codigos = ["0", "10", "110", "111"]
 probs = [0.5, 0.25, 0.125, 0.125]
 
 mensaje = generar_mensaje(5, codigos, probs)
 print(mensaje)  # Ejemplo de salida: "0110110110"
+"""
