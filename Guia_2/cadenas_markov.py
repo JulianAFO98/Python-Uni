@@ -8,7 +8,6 @@ c. Dada una matriz de transición y una tolerancia máxima, determinar si se tra
 una fuente de memoria nula o una fuente con memoria
 """
 import random
-import entropia_markov_estacionario
 
 def obtener_alfabeto_y_matriz_transicion(cadena):
     alfabeto = []

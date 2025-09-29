@@ -36,7 +36,7 @@ def calcular_entropia_fuente(matriz,vector_estacionario):
         suma = 0
         for j in range(len(matriz[i])):
             if matriz[j][i] != 0:
-                suma+= matriz[j][i] * math.log2(matriz[j][i])
+                suma+= matriz[j][i] * math.log(matriz[j][i],2)
         vector_entropias.append(suma * -1)
     for a, b in zip(vector_estacionario, vector_entropias):
         h+= a*b
