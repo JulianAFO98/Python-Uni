@@ -32,6 +32,9 @@ def calcular_inecuacion_kraft(cadena_codigo,lista_longitudes):
         suma+=r ** (-lista_longitudes[i])
     return suma
 
+"""
+AUXILIARES
+"""
 def es_instantaneo(codigo):
     for i, palabra in enumerate(codigo):
         for j, otra in enumerate(codigo):
@@ -47,6 +50,9 @@ def info(val,base):
 def generarListaInfo(lista,base):
     return [info(val,base) for val in lista]
 
+"""
+AUXILIARES
+"""
 
 def calcular_entropia_fuente_codigo(palabras_codigo,probabilidades):
     simbolos_distintos = obtener_cadena_alfabeto_codigo(palabras_codigo)
@@ -78,7 +84,6 @@ def es_codigo_compacto(codigo,probs):
 
     entropia = calcular_entropia_fuente_codigo(codigo,probs)
     L = calcular_longitud_media_codigo(codigo,probs)
-    
     if(not es_instantaneo(codigo)):
         return False
     
