@@ -82,12 +82,12 @@ def es_codigo_compacto(codigo,probs):
     if suma_kraft > 1:
         return False 
 
-    entropia = calcular_entropia_fuente_codigo(codigo,probs)
+    entropia = calcular_entropia_fuente_codigo_con_techo(codigo,probs)
     L = calcular_longitud_media_codigo(codigo,probs)
     if(not es_instantaneo(codigo)):
         return False
     
-    return L>=entropia and L<(entropia+1)
+    return L<=entropia
 
 def generar_mensaje(N, codigos, probs):
  
@@ -130,6 +130,7 @@ informaciones(lista,probs)
 
 15)
 """
+"""
 probs = [0.1, 0.5, 0.1, 0.2,0.05,0.05]
 
 lista = ["==","<","<=",">",">=","<>"]
@@ -140,7 +141,16 @@ lista = ["/","*","-","*","++","+-"]
 print(es_codigo_compacto(lista,probs))
 lista = [".,",";",",,",":","...",",:;"]
 print(es_codigo_compacto(lista,probs))
-
+"""
+probs = [0.13, 0.34, 0.37, 0.12,0.04]
+lista = ["BA","CCB","AC","C","BAC"]
+print(es_codigo_compacto(lista,probs))
+lista = ["B","CB","A","CC","CA"]
+print(es_codigo_compacto(lista,probs))
+lista = ["AA","C","B","AB","ACB"]
+print(es_codigo_compacto(lista,probs))
+lista = ["BC","A","C","BA","BB"]
+print(es_codigo_compacto(lista,probs))
 
 """
 codigos = ["0", "10", "110", "111"]
