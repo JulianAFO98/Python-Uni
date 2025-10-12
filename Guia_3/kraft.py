@@ -54,8 +54,8 @@ def generarListaInfo(lista,base):
 AUXILIARES
 """
 
-def calcular_entropia_fuente_codigo(palabras_codigo,probabilidades):
-    simbolos_distintos = obtener_cadena_alfabeto_codigo(palabras_codigo)
+def calcular_entropia_fuente_codigo(cadena_codigo,probabilidades):
+    simbolos_distintos = obtener_cadena_alfabeto_codigo(cadena_codigo)
     base = len(simbolos_distintos)
     return sum(p * info(p,base) for p in probabilidades)
 
@@ -103,6 +103,7 @@ def generar_mensaje(N, codigos, probs):
 lista = [".,",";",",,",":","...",",:;"]
 print(calcular_inecuacion_kraft(obtener_cadena_alfabeto_codigo(lista),generar_lista_longitudes(lista)))
 """
+
 """
 13)
 ["0","10","110","111"]
@@ -141,7 +142,7 @@ lista = ["/","*","-","*","++","+-"]
 print(es_codigo_compacto(lista,probs))
 lista = [".,",";",",,",":","...",",:;"]
 print(es_codigo_compacto(lista,probs))
-"""
+
 probs = [0.13, 0.34, 0.37, 0.12,0.04]
 lista = ["BA","CCB","AC","C","BAC"]
 print(es_codigo_compacto(lista,probs))
@@ -152,6 +153,7 @@ print(es_codigo_compacto(lista,probs))
 lista = ["BC","A","C","BA","BB"]
 print(es_codigo_compacto(lista,probs))
 
+"""
 """
 codigos = ["0", "10", "110", "111"]
 probs = [0.5, 0.25, 0.125, 0.125]
