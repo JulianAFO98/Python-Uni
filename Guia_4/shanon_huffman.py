@@ -229,6 +229,159 @@ def calcular_comprension(cadena_alfabeto_fuente,byte_array):
     print("La compresion es de: ",compresion," veces")
     return round(compresion,4)   
 
+def hamming(lista_palabras_codigo):
+    distancias = []
+    for i in range(len(lista_palabras_codigo)):
+        for j in range(i + 1, len(lista_palabras_codigo)):
+            palabra1 = lista_palabras_codigo[i]
+            palabra2 = lista_palabras_codigo[j]
+            # Asegurarse de que ambas palabras tengan la misma longitud
+            if len(palabra1) != len(palabra2):
+                raise ValueError("Las palabras deben tener la misma longitud para calcular la distancia de Hamming.")
+            # Calcular la distancia de Hamming
+            distancia = sum(c1 != c2 for c1, c2 in zip(palabra1, palabra2))
+            distancias.append(distancia)
+    # Calcular la distancia mínima, cantidad de errores detectables y corregibles
+    distancia_minima = min(distancias) if distancias else 0
+    cantidad_errores_detectables = distancia_minima - 1 if distancia_minima > 0 else 0
+    cantidad_errores_correjibles = (distancia_minima - 1) // 2 if distancia_minima > 0 else 0
+
+    return distancia_minima,cantidad_errores_detectables,cantidad_errores_correjibles
+
+#tipo paridad -> 0 para par (default), 1 para paridad impar
+def devolver_byte_con_paridad(byte,tipoParidad = 0):
+    byte = ord(byte)
+    contador_bits = 0
+    for i in range(8):
+        bit = (byte >> (7 - i)) & 1  # del bit más significativo al menos
+        contador_bits+=bit
+    if tipoParidad == 0: 
+        paridad = 0 if contador_bits % 2 == 0 else 1
+    else:  
+        paridad = 1 if contador_bits % 2 == 0 else 0
+
+    byte_con_paridad = (byte << 1) | paridad   
+
+    return byte_con_paridad
+
+def byte_tiene_errores(byte,tipoParidad=0):
+    bit_paridad = byte & 1 # tomo el menos significativo
+    byte = byte >> 1
+    contador_bits = 0
+    for i in range(8):
+        bit = (byte >> (7 - i)) & 1  # del bit más significativo al menos
+        contador_bits+=bit
+    
+    if tipoParidad == 0:  
+        bit_esperado = 0 if contador_bits % 2 == 0 else 1
+    else: 
+        bit_esperado = 1 if contador_bits % 2 == 0 else 0
+    
+    return bit_paridad != bit_esperado
+
+
+def codificar_con_paridades(cadena, tipoParidad=0):
+    if not cadena:
+        return bytearray()
+
+    # convertir cada char en byte con paridad vertical
+    bytes_con_paridad = [devolver_byte_con_paridad(c, tipoParidad) for c in cadena]
+
+    # crear matriz de bits (cada fila = byte de 9 bits)
+    matriz_bits = []
+    for byte in bytes_con_paridad:
+        fila = [(byte >> i) & 1 for i in range(8, -1, -1)]  # 9 bits (MSB -> LSB)
+        matriz_bits.append(fila)
+
+    filas = len(matriz_bits)
+    columnas = len(matriz_bits[0])
+
+    # calcular paridad longitudinal (columna por columna)
+    paridad_longitudinal = []
+    for col in range(columnas):
+        suma = sum(matriz_bits[f][col] for f in range(filas))
+        if tipoParidad == 0:  # paridad par
+            paridad_longitudinal.append(suma % 2)
+        else:  # impar
+            paridad_longitudinal.append((suma + 1) % 2)
+
+    #calcular paridad cruzada (bit total de todas las paridades longitudinales)
+    suma_total = sum(paridad_longitudinal)
+    if tipoParidad == 0:
+        bit_cruzado = suma_total % 2
+    else:
+        bit_cruzado = (suma_total + 1) % 2
+
+    # agregar las paridades como bytes finales
+    # Convertir la paridad longitudinal (9 bits) en un byte
+    byte_paridad_longitudinal = 0
+    for bit in paridad_longitudinal:
+        byte_paridad_longitudinal = (byte_paridad_longitudinal << 1) | bit
+
+    # Agregar todo al bytearray
+    resultado = bytearray(bytes_con_paridad)
+    resultado.append(byte_paridad_longitudinal)
+    resultado.append(bit_cruzado)
+
+    return resultado
+
+
+
+def decodificar_con_paridades(byte_seq, tipoParidad=0):
+    if not byte_seq or len(byte_seq) < 3:
+        return ""
+
+    # Últimos dos bytes: longitudinal y cruzada
+    bit_cruzado = byte_seq[-1]
+    byte_paridad_longitudinal = byte_seq[-2]
+    bytes_datos = byte_seq[:-2]
+
+    # Verificar errores individuales (paridad vertical)
+    errores = [byte_tiene_errores(b, tipoParidad) for b in bytes_datos]
+    if any(errores):
+        return ""
+
+    # Reconstruir la matriz de bits para comprobar longitudinal y cruzada
+    matriz_bits = []
+    for byte in bytes_datos:
+        fila = [(byte >> i) & 1 for i in range(8, -1, -1)]
+        matriz_bits.append(fila)
+
+    filas = len(matriz_bits)
+    columnas = len(matriz_bits[0])
+
+    # Calcular paridad longitudinal esperada
+    paridad_longitudinal_esperada = []
+    for col in range(columnas):
+        suma = sum(matriz_bits[f][col] for f in range(filas))
+        if tipoParidad == 0:
+            paridad_longitudinal_esperada.append(suma % 2)
+        else:
+            paridad_longitudinal_esperada.append((suma + 1) % 2)
+
+    # Comparar con la recibida
+    for i in range(columnas):
+        bit_recibido = (byte_paridad_longitudinal >> (columnas - 1 - i)) & 1
+        if bit_recibido != paridad_longitudinal_esperada[i]:
+            return ""
+
+    # Verificar paridad cruzada
+    suma_total = sum(paridad_longitudinal_esperada)
+    bit_cruzado_esperado = suma_total % 2 if tipoParidad == 0 else (suma_total + 1) % 2
+    if bit_cruzado != bit_cruzado_esperado:
+        return ""
+
+    # Todo correcto: reconstruir cadena
+    mensaje = ""
+    for byte in bytes_datos:
+        ascii_byte = byte >> 1  # eliminar bit de paridad vertical
+        mensaje += chr(ascii_byte)
+
+    return mensaje
+
+
+
+
 def mostrarListaConIndices(lista):
     for i in range(len(lista)):
         print(f"[{i}]={lista[i]}",end="  ")
@@ -357,10 +510,31 @@ cadena_decodificada = decodificar_de_byteArray(cadena_bits," ,.:;ABCDEFGHIJKLMN�
 print(cadena_decodificada)
 
 """
-
+"""
 bytearray_cadena = codificar_usando_RCL("XXXYZZZZ")
 print("Compresion RCL ",calcular_comprension("XXXYZZZZ",bytearray_cadena))
 bytearray_cadena = codificar_usando_RCL("AAAABBBCCDAA")
 print("Compresion RCL ",calcular_comprension("AAAABBBCCDAA",bytearray_cadena))
 bytearray_cadena = codificar_usando_RCL("UUOOOOAAAIEUUUU")
 print("Compresion RCL ",calcular_comprension("UUOOOOAAAIEUUUU",bytearray_cadena))
+"""
+#punto 23
+"""
+C = ["0100100","0101000","0010010","0100000"]
+distancia,errores_detectables,errores_corregibles = hamming(C)
+print(distancia,errores_detectables,errores_corregibles)
+C = ["0100100","0010010","0101000","0100001"]
+distancia,errores_detectables,errores_corregibles = hamming(C)
+print(distancia,errores_detectables,errores_corregibles)
+C = ["0110000","0000011","0101101","0100110"]
+distancia,errores_detectables,errores_corregibles = hamming(C)
+print(distancia,errores_detectables,errores_corregibles)
+"""
+
+print(devolver_byte_con_paridad("c"))
+print(byte_tiene_errores(devolver_byte_con_paridad("c")))
+
+mensaje = codificar_con_paridades("Hola")
+print(mensaje)
+mensajeDescifrado = decodificar_con_paridades(mensaje)
+print(mensajeDescifrado)
