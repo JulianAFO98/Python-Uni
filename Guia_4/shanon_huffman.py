@@ -140,43 +140,54 @@ def algoritmo_shanon_fano(probs):
     print("Tabla shanon fano final ",tabla_shanon_fano)
     return tabla_shanon_fano
 
-#llamada a codificar_en_byteArray => codificar_en_byteArray("ABCD",["00","01","10","11"])
-def codificar_en_byteArray(mensaje_a_codificar,alfabeto_fuente,lista_cadena_caracteres):
-    relacion_alfabeto_fuente_codigo = {alfabeto_fuente[i]: lista_cadena_caracteres[i] for i in range(len(alfabeto_fuente))}
-    cadena_codificada = ""
-    for caracter in mensaje_a_codificar:
-        if caracter in relacion_alfabeto_fuente_codigo:
-            cadena_codificada += relacion_alfabeto_fuente_codigo[caracter]
+def codificar_en_byteArray(mensaje_a_codificar, alfabeto_fuente, lista_cadena_caracteres):
+    relacion = {alfabeto_fuente[i]: lista_cadena_caracteres[i] for i in range(len(alfabeto_fuente))}
+
+    cuerpo = ""
+    for c in mensaje_a_codificar:
+        if c in relacion:
+            cuerpo += relacion[c]
         else:
-            raise ValueError(f"El caracter '{caracter}' no está en el alfabeto fuente.")
-    #convertir cadena codificada en bytearray
-    # Asegurarse de que la longitud de la cadena sea múltiplo de 8
-    while len(cadena_codificada) % 8 != 0:
-        cadena_codificada += '0'  # Rellenar con ceros al final si es necesario
+            raise ValueError(f"El caracter '{c}' no está en el alfabeto fuente.")
+    ceros_relleno = ( - (3 + len(cuerpo)) ) % 8 
+   
+   # Añadir  ceros al final del cuerpo
+    cuerpo_padded = cuerpo + ("0" * ceros_relleno)
+    # Encabezado de 3 bits con la cantidad de ceros
+    encabezado = f"{ceros_relleno:03b}"
+    cadena_final_bits = encabezado + cuerpo_padded
+    # Ahora la longitud debe ser múltiplo de 8; convertir a bytearray
+
+    if len(cadena_final_bits) % 8 != 0:
+        raise RuntimeError("Longitud inesperada, no múltiplo de 8.")
     
-    byte_array = bytearray(int(cadena_codificada[i:i+8], 2) for i in range(0, len(cadena_codificada), 8))   
-    cadena_bits = "".join(f"{byte:08b}" for byte in byte_array)
+    byte_array = bytearray(int(cadena_final_bits[i:i+8], 2) for i in range(0, len(cadena_final_bits), 8))
+    cadena_bits = "".join(f"{b:08b}" for b in byte_array)
     return cadena_bits, byte_array
 
-
-
-
-def decodificar_de_byteArray(cadena_bits_byteArray,alfabeto_fuente,alfabeto_codigo):
-    
-    # Crear un diccionario para mapear códigos a símbolos del alfabeto fuente
+def decodificar_de_byteArray(cadena_bits_byteArray, alfabeto_fuente, alfabeto_codigo):
+    if len(cadena_bits_byteArray) < 3:
+        raise ValueError("Entrada demasiado corta para contener el encabezado.")
+    ceros_relleno = int(cadena_bits_byteArray[:3], 2)
+    cuerpo_bits = cadena_bits_byteArray[3:]
+    if ceros_relleno:
+        if ceros_relleno > len(cuerpo_bits):
+            raise ValueError("Número de ceros de relleno inválido.")
+        cuerpo_bits = cuerpo_bits[:-ceros_relleno]
     codigo_a_simbolo = {alfabeto_codigo[i]: alfabeto_fuente[i] for i in range(len(alfabeto_fuente))}
-    
-    # Decodificar la cadena de bits
+    # Decodificar
     cadena_decodificada = ""
-    codigo_actual = ""
-    
-    for bit in cadena_bits_byteArray:
-        codigo_actual += bit
-        if codigo_actual in codigo_a_simbolo:
-            cadena_decodificada += codigo_a_simbolo[codigo_actual]
-            codigo_actual = ""
-    
+    buffer = ""
+    for bit in cuerpo_bits:
+        buffer += bit
+        if buffer in codigo_a_simbolo:
+            cadena_decodificada += codigo_a_simbolo[buffer]
+            buffer = ""
+    # Si quedó buffer no vacío significa que los códigos no forman una partición válida
+    if buffer != "":
+        raise ValueError("Secuencia de bits restante no coincide con ningún código (buffer no vacío).")
     return cadena_decodificada
+
 
 
 def codificar_usando_RCL(cadena):
@@ -469,14 +480,14 @@ print(calcularRedundanciaYEficiencia(probs, tabla_huffman))
 print(calcularRedundanciaYEficiencia(probs, tabla_shanon_fano)) # preguntar
 """
 #Punto 15
-"""
 
-cadena_bits,byte_array = codificar_en_byteArray("DDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBAAABBCD",["00","11","10","01"]) # deberia devolver bytearray(b'\x00\x01\x02\x03\x00\x01\x02\x03')
+
+cadena_bits,byte_array = codificar_en_byteArray("DDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBAAABBCD","ABCD",["00","11","10","01"]) # deberia devolver bytearray(b'\x00\x01\x02\x03\x00\x01\x02\x03')
 print(cadena_bits)
 print(byte_array)
-cadena_decodificada = decodificar_de_byteArray(cadena_bits,"BDAC",["00","11","10","01"]) #Ojo con el orden de los alfabetos
+cadena_decodificada = decodificar_de_byteArray(cadena_bits,"ABCD",["00","11","10","01"]) #Ojo con el orden de los alfabetos
 print(cadena_decodificada)
-"""
+
 #Punto 16
 
 #print(calcular_comprension("DDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBAAABBCD",byte_array))
@@ -530,7 +541,7 @@ C = ["0110000","0000011","0101101","0100110"]
 distancia,errores_detectables,errores_corregibles = hamming(C)
 print(distancia,errores_detectables,errores_corregibles)
 """
-
+"""
 print(devolver_byte_con_paridad("c"))
 print(byte_tiene_errores(devolver_byte_con_paridad("c")))
 
@@ -538,3 +549,6 @@ mensaje = codificar_con_paridades("Hola")
 print(mensaje)
 mensajeDescifrado = decodificar_con_paridades(mensaje)
 print(mensajeDescifrado)
+
+
+"""
