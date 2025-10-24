@@ -1,3 +1,5 @@
+import math
+
 def generar_matriz_canal(cadena_sin_codificar,cadena_salida):
     lista_letras = []
     cantidad_elementos = len(cadena_sin_codificar)
@@ -125,6 +127,26 @@ def mostrar_matriz_encuadrada(matriz, etiquetas_filas=None, etiquetas_columnas=N
             print(f"{valor:8.4f}", end="")
         print()
 
+def info(num):
+    return -math.log2(num)  if num !=0 else 0
+
+def lista_entropias(probs_priori, matriz_canal):
+    entropia_priori = 0
+    lista_entropia_posteriori = []
+    matriz_posteriori = generar_matriz_posteriori(probs_priori, matriz_canal)
+
+    # Recorrer columnas (cada y_j)
+    for j in range(len(matriz_posteriori[0])):  
+        entropia = 0
+        for i in range(len(matriz_posteriori)):  # recorrer filas (x_i)
+            entropia += matriz_posteriori[i][j] * info(matriz_posteriori[i][j])
+        lista_entropia_posteriori.append(round(entropia, 3))
+
+    # Entropía a priori
+    for i in range(len(probs_priori)):
+        entropia_priori += probs_priori[i] * info(probs_priori[i])
+
+    return round(entropia_priori, 3), lista_entropia_posteriori
 #print(generar_matriz_canal("abcacaabbcacaabcacaaabcaca","01010110011001000100010011"))
 
 #Punto 3
@@ -150,8 +172,8 @@ mat_posteriori = generar_matriz_posteriori([0.3,0.3,0.4],[[0.4,0.4,0.2],
 
 mostrar_matriz_encuadrada(mat_posteriori)
 """
+"""
 
-#punto 8
 mat_canal = generar_matriz_canal("110101100110101100110101100111110011","110021102110022010220121122100112011")
 mat_posteriori = generar_matriz_posteriori(a_priori("110101100110101100110101100111110011"),mat_canal)
 mat_simultaneos = generar_matriz_eventos_simultaneos(a_priori("110101100110101100110101100111110011"),mat_canal)
@@ -159,4 +181,35 @@ mostrar_matriz_encuadrada(mat_posteriori)
 mostrar_matriz_encuadrada(mat_simultaneos)
 
 
+"""
+"""
 
+mat_canal = generar_matriz_canal("abcacaabbcacaabcacaaabcaca","01010110011001000100010011")
+entropia_priori,entropia_posteriori = lista_entropias(a_priori("abcacaabbcacaabcacaaabcaca"),mat_canal)
+
+print(entropia_priori)
+print(entropia_posteriori)
+mat_canal = generar_matriz_canal("1101011001101010010101010100011111","1001111111100011101101010111110110")
+entropia_priori,entropia_posteriori = lista_entropias(a_priori("1101011001101010010101010100011111"),mat_canal)
+
+print(entropia_priori)
+print(entropia_posteriori)
+
+mat_canal = generar_matriz_canal("110101100110101100110101100111110011","110021102110022010220121122100112011")
+entropia_priori,entropia_posteriori = lista_entropias(a_priori("110101100110101100110101100111110011"),mat_canal)
+
+print(entropia_priori)
+print(entropia_posteriori)
+entropia_priori,entropia_posteriori = lista_entropias([0.3,0.3,0.4],[[0.4,0.4,0.2],[0.3,0.2,0.5],[0.3,0.4,0.3]])
+
+print(entropia_priori)
+print(entropia_posteriori)
+"""
+
+entropia_priori,entropia_posteriori = lista_entropias([0.14,0.52,0.34],[[0.5,0.3,0.2],[0,0.4,0.6],[0.2,0.8,0]])
+entropia_priori,entropia_posteriori = lista_entropias([0.25,0.25,0.5],[[0.25,0.25,0.25,0.25],[0.25,0.25,0,0.5],[0.5,0,0.5,0]])
+entropia_priori,entropia_posteriori = lista_entropias([0.12,0.24,0.14,0.5],[[0.25,0.15,0.3,0.3],[0.23,0.27,0.25,0.25],[0.1,0.4,0.25,0.25],[0.34,0.26,0.2,0.2]])
+
+
+print(entropia_priori)
+print(entropia_posteriori)
