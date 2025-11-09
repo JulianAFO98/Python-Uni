@@ -215,6 +215,112 @@ def calcular_informacion_mutua(probs_priori, matriz_canal):
     return info_mutua
 
 
+def es_sin_ruido(matriz_canal):
+    n = len(matriz_canal)
+    m = len(matriz_canal[0])
+    for j in range(m):
+        valores_no_nulos=0
+        for i in range(n):
+            if(matriz_canal[i][j]!=0):
+                valores_no_nulos+=1
+            if(valores_no_nulos>1):
+                return False
+    return True
+
+def es_determinante(matriz_canal):
+    n = len(matriz_canal)
+    m = len(matriz_canal[0])
+    for i in range(n):
+        valores_no_nulos=0
+        for j in range(m):
+            if(matriz_canal[i][j]!=0):
+                valores_no_nulos+=1
+            if(valores_no_nulos>1):
+                return False
+    return True
+
+def generar_matriz_compuesta(A, B):
+    if len(A[0]) != len(B):
+        raise ValueError("Las matrices no se pueden multiplicar: dimensiones incompatibles")
+
+    filas_A = len(A)
+    columnas_B = len(B[0])
+    columnas_A = len(A[0])  
+
+    resultado = [[0 for _ in range(columnas_B)] for _ in range(filas_A)]
+
+    for i in range(filas_A):
+        for j in range(columnas_B):
+            for k in range(columnas_A):
+                resultado[i][j] += A[i][k] * B[k][j]
+
+    return resultado
+
+def _verificar_proporcionalidad(matriz, col_a, col_b, tol=1e-9):
+    k = None  
+    for i in range(len(matriz)):
+        val_a = matriz[i][col_a]
+        val_b = matriz[i][col_b]
+
+        if abs(val_b) > tol:
+            current_k = val_a / val_b
+            if k is None:
+                k = current_k
+            elif abs(k - current_k) > tol:
+                return False
+        elif abs(val_a) > tol:
+            return False
+    return True
+
+def son_columnas_combinables(matriz, col1, col2):
+    TOL = 1e-9
+    proporcional_dir1 = _verificar_proporcionalidad(matriz, col1, col2, TOL)
+    proporcional_dir2 = _verificar_proporcionalidad(matriz, col2, col1, TOL)
+    return proporcional_dir1 or proporcional_dir2
+
+def generar_matriz_determinante(matriz, col1, col2):
+    m = len(matriz[0])  # cantidad de columnas de la matriz original
+    matriz_determinante = []
+
+    if col1 > col2:
+        col1, col2 = col2, col1
+
+    for i in range(m):
+        fila = [0] * (m - 1)
+        if i == col1:
+            fila[col1] = 1
+        elif i == col2:
+            fila[col1] = 1   
+        elif i < col2:
+            fila[i] = 1
+        else:
+            fila[i - 1] = 1
+        matriz_determinante.append(fila)
+
+    return matriz_determinante
+
+"""
+Realiza todas las reducciones suficientes posibles a la matriz del canal
+utilizando las funciones de combinación de columnas.
+"""
+def generar_matriz_reducida(matriz_de_un_canal):
+    matriz_actual = [fila[:] for fila in matriz_de_un_canal]
+    while True:
+        se_hizo_una_reduccion = False
+        num_cols = len(matriz_actual[0])
+        
+        for i in range(num_cols):
+            for j in range(i + 1, num_cols):
+                if son_columnas_combinables(matriz_actual, i, j):
+                    matriz_D = generar_matriz_determinante(matriz_actual, i, j)
+                    matriz_actual = generar_matriz_compuesta(matriz_actual, matriz_D)
+                    se_hizo_una_reduccion = True
+                    break  
+            if se_hizo_una_reduccion:
+                break  
+        if not se_hizo_una_reduccion:
+            break
+    return matriz_actual
 
 #print(generar_matriz_canal("abcacaabbcacaabcacaaabcaca","01010110011001000100010011"))
 
@@ -285,9 +391,33 @@ print(entropia_posteriori)
 
 """
 
-entro_priori,entro_posteriori = lista_entropias([0.14,0.52,0.34],[[0.5,0.3,0.2],[0,0.4,0.6],[0.2,0.8,0]])
-print(entro_priori)
-calcular_entropia_salida([0.14,0.52,0.34],[[0.5,0.3,0.2],[0,0.4,0.6],[0.2,0.8,0]])
-calcular_equivocacion([0.14,0.52,0.34],[[0.5,0.3,0.2],[0,0.4,0.6],[0.2,0.8,0]])
-calcular_entropia_afin([0.14,0.52,0.34],[[0.5,0.3,0.2],[0,0.4,0.6],[0.2,0.8,0]])
-calcular_informacion_mutua([0.14,0.52,0.34],[[0.5,0.3,0.2],[0,0.4,0.6],[0.2,0.8,0]])
+#calcular_equivocacion([0.25,0.25,0.25,0.25],[[0,1,0],[0,0,1],[0,1,0],[1,0,0]])
+#calcular_informacion_mutua([0.25,0.25,0.25,0.25],[[0,1,0],[0,0,1],[0,1,0],[1,0,0]])
+
+#calcular_equivocacion([1/3,1/3,1/3],[[1,0,0,0],[0,0.2,0,0.8],[0,0,1,0]])
+#calcular_informacion_mutua([1/3,1/3,1/3],[[1,0,0,0],[0,0.2,0,0.8],[0,0,1,0]])
+
+#print(es_sin_ruido([[0,1,0],[0,0,1],[0,1,0],[1,0,0]]))
+#print(es_sin_ruido([[1,0,0,0],[0,0.2,0,0.8],[0,0,1,0]]))
+#print(es_sin_ruido([[0.3,0.5,0.2],[0.2,0.3,0.5],[0.5,0.2,0.3]]))
+#print(es_sin_ruido([[0,0,1,0],[1,0,0,0],[0,1,0,0],[0,0,0,1]]))
+
+#print(es_determinante([[0,1,0],[0,0,1],[0,1,0],[1,0,0]]))
+#print(es_determinante([[1,0,0,0],[0,0.2,0,0.8],[0,0,1,0]]))
+#print(es_determinante([[0.3,0.5,0.2],[0.2,0.3,0.5],[0.5,0.2,0.3]]))
+#print(es_determinante([[0,0,1,0],[1,0,0,0],[0,1,0,0],[0,0,0,1]]))
+
+#calcular_equivocacion([1/2,1/2],[[0.7,0,0.3,0],[0.2,0.6,0,0.2]])
+#calcular_informacion_mutua([1/2,1/2],[[0.7,0,0.3,0],[0.2,0.6,0,0.2]])
+"""
+matriz_mult = generar_matriz_compuesta(
+    [[0.7,0,0.3,0],[0.2,0.6,0,0.2]],
+    [[0.9,0,0.1],[0,1,0],[0.1,0.1,0.8],[0,0.5,0.5]]
+)
+mostrar_matriz_encuadrada(matriz_mult)
+calcular_equivocacion([1/2,1/2],matriz_mult)
+calcular_informacion_mutua([1/2,1/2],matriz_mult)
+"""
+
+
+mostrar_matriz_encuadrada(generar_matriz_reducida([[0.7,0,0.3,0],[0.2,0.6,0,0.2]]))
