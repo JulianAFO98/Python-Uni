@@ -322,6 +322,92 @@ def generar_matriz_reducida(matriz_de_un_canal):
             break
     return matriz_actual
 
+"""
+Un canal es uniforme si cada fila consiste en una permutación arbitraria de los términos de la primera fila. 
+"""
+def es_canal_uniforme(matriz_canal):
+    num_filas = len(matriz_canal)
+
+    primera_fila = sorted(matriz_canal[0])
+    for i in range(1, num_filas):
+        if sorted(matriz_canal[i]) != primera_fila:
+            return False
+    return True
+
+def calcular_capacidad_canal(matriz_canal):
+    if (es_determinante(matriz_canal)):
+        capacidad = math.log2(len(matriz_canal[0]))
+    elif(es_sin_ruido(matriz_canal)):
+        capacidad = math.log2(len(matriz_canal))
+    elif(es_canal_uniforme(matriz_canal)):
+        fila = matriz_canal[0]
+        entropia = 0
+        for p in fila:
+            entropia += p * info(p)
+        capacidad = math.log2(len(matriz_canal)) - entropia
+    print("Capacidad del canal: ",capacidad)
+    return capacidad
+
+"""
+Realizar una función en Python que reciba como parámetros: 
+la matriz de un canal binario y un valor de paso, y estime 
+la capacidad del canal mediante el cálculo de la información
+ mutua para un conjunto de probabilidades a priori distribuidas 
+ uniformemente según el paso especificado. La función debe retornar 
+ el valor de capacidad estimado, junto con su probabilidad asociada. 
+"""
+
+def estimar_capacidad_canal_binario(matriz_canal, paso):
+    capacidades = []
+    probabilidades_asociadas = []
+
+    prob_actual = 0.0
+    while prob_actual <= 1.0:
+        probs_priori = [prob_actual, 1 - prob_actual]
+        info_mutua = calcular_informacion_mutua(probs_priori, matriz_canal)
+        capacidades.append(info_mutua)
+        probabilidades_asociadas.append(probs_priori)
+        prob_actual += paso
+
+    capacidad_estimada = max(capacidades)
+    indice_max = capacidades.index(capacidad_estimada)
+    probabilidad_asociada = probabilidades_asociadas[indice_max]
+
+    print("Capacidad estimada: ",capacidad_estimada)
+    print("Probabilidad asociada: ",probabilidad_asociada)
+    return capacidad_estimada, probabilidad_asociada
+
+def calcular_probabilidad_error(probs_priori, matriz_canal):
+    M = len(matriz_canal) 
+    if M == 0:
+        return 0.0
+    N = len(matriz_canal[0])
+
+    decision_rule = [0] * N 
+    
+    for j in range(N): 
+        max_prob = -1.0
+        indice_max = -1
+        for i in range(M): 
+            prob_actual = matriz_canal[i][j]
+            if prob_actual > max_prob:
+                max_prob = prob_actual
+                indice_max = i
+        decision_rule[j] = indice_max
+    P_error_dado_x = [0.0] * M
+    
+    for i in range(M): 
+        P_acierto_dado_x = 0.0
+        for j in range(N):
+            if decision_rule[j] == i:
+                P_acierto_dado_x += matriz_canal[i][j]
+        P_error_dado_x[i] = 1.0 - P_acierto_dado_x
+    probabilidad_error_total = 0.0
+    for i in range(M):
+        probabilidad_error_total += P_error_dado_x[i] * probs_priori[i]
+    return probabilidad_error_total
+
+
 #print(generar_matriz_canal("abcacaabbcacaabcacaaabcaca","01010110011001000100010011"))
 
 #Punto 3
@@ -420,4 +506,20 @@ calcular_informacion_mutua([1/2,1/2],matriz_mult)
 """
 
 
-mostrar_matriz_encuadrada(generar_matriz_reducida([[0.7,0,0.3,0],[0.2,0.6,0,0.2]]))
+#calcular_capacidad_canal([[0.0,1.0,0.0],[0,0,1],[0.0,1,0],[1.0,0.0,0.0]])
+#calcular_capacidad_canal([[1,0,0,0],[0,0.2,0,0.8],[0,0,1,0]])
+#calcular_capacidad_canal([[0.3,0.5,0.2],[0.2,0.3,0.5],[0.5,0.2,0.3]])
+#calcular_capacidad_canal([[0,0,0,1],[1,0,0,0],[0,1,0,0],[0,0,1,0]])
+
+#estimar_capacidad_canal_binario([[0.6,0.4],[0.2,0.8]],0.001)
+#estimar_capacidad_canal_binario([[0.25,0.75],[0.9,0.1]],0.001)
+#estimar_capacidad_canal_binario([[0.51,0.49],[0.72,0.28]],0.001)
+#estimar_capacidad_canal_binario([[0.77,0.23],[0.2,0.8]],0.0001)
+"""
+
+matriz_ejemplo = [[0.6, 0.3,0.1], [0.1, 0.8,0.1],[0.3,0.3,0.4]]
+probs_priori_uniforme = [4/15, 3/15, 8/15]
+
+prob_error_calculada = calcular_probabilidad_error(probs_priori_uniforme, matriz_ejemplo)
+print("Probabilidad de error calculada:", prob_error_calculada)
+"""
