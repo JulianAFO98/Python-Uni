@@ -67,7 +67,7 @@ def cumple_primer_teorema_shannon(probs_fuente, palabras_codigo, n):
     listaExtension,probsExtension = generarListaExtension(palabras_codigo, probs_fuente, n)
     L_n = calcular_longitud_media_codigo(listaExtension, probsExtension)
     print("Longitud ",L_n)
-    H_r_S = calcular_entropia_fuente_codigo(listaExtension, probsExtension)/n
+    H_r_S = calcular_entropia_fuente_codigo(palabras_codigo, probs_fuente)
     print("Entropia r ",H_r_S)
     return (H_r_S) <= (L_n/n)  and  (L_n/n)  < ((H_r_S) + (1 / n))
 
@@ -88,16 +88,16 @@ def cumple_primer_teorema_shannon(probs_fuente, palabras_codigo, n):
  Estas medidas son utiles para evaluar la calidad del codigo en terminos de su capacidad 
  para representar la informacion de manera eficiente.
 """
-def calcularRedundanciaYEficiencia(probs_extension, palabras_codigo):
+def calcularRedundanciaYEficiencia(probs, palabras_codigo):
     """
     probs_extension: lista de probabilidades de cada palabra (bloque) en la extensión
     palabras_codigo: lista de longitudes o códigos asociados a cada palabra
     """
     # Longitud media del código
-    L = calcular_longitud_media_codigo(palabras_codigo, probs_extension)
+    L = calcular_longitud_media_codigo(palabras_codigo, probs)
     
     # Entropía de la fuente
-    H = calcular_entropia_fuente_codigo(palabras_codigo, probs_extension)
+    H = calcular_entropia_fuente_codigo(palabras_codigo, probs)
     
     # Redundancia y eficiencia
     eficiencia = H / L if L != 0 else 0
@@ -504,27 +504,18 @@ def mostrarListaConIndices(lista):
 """
 print(cumple_primer_teorema_shannon([0.3,0.1,0.4,0.2],["BA","CAB","A","CBA"],1))
 print(cumple_primer_teorema_shannon([0.3,0.1,0.4,0.2],["BA","CAB","A","CBA"],2))
-
+"""
+"""
 C1 = ["11", "010", "00"]
 C2 = ["10", "001", "110", "010", "0000", "0001", "111", "0110", "0111"]
 P = [0.5, 0.2, 0.3]
 P_2 = [P[i]*P[j] for i in range(len(P)) for j in range(len(P))]
 
 print(cumple_primer_teorema_shannon(P, C1, 1))
-print(cumple_primer_teorema_shannon(P_2, C2, 1))
+print(cumple_primer_teorema_shannon(P_2, C2, 2))
 """
-"""
-P = [0.8,0.2]
-listaExtension,listaExtensionProb = generarListaExtension(["0","1"],P,3)
-print("Extension ",listaExtension)
-print("Probs Extension ordenada ",sorted(listaExtensionProb,reverse=True))
-print(cumple_primer_teorema_shannon(sorted(listaExtensionProb,reverse=True), ["0","100","101","110","11100","11101","11110","11111"], 3))
 
-"""
-"""
-print(cumple_primer_teorema_shannon([0.49,0.21,0.21,0.09],["0","11","100","101"],2))
-print(cumple_primer_teorema_shannon([0.49,0.21,0.21,0.09],["0","10","110","111"],2))
-"""
+
 
 """
 6
@@ -584,6 +575,7 @@ print(calcularRedundanciaYEficiencia(probs, tabla_shanon_fano)) # preguntar
 """
 #Punto 15
 
+"""
 
 cadena_bits,byte_array = codificar_en_byteArray("DDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBAAABBCD","ABCD",["00","11","10","01"]) # deberia devolver bytearray(b'\x00\x01\x02\x03\x00\x01\x02\x03')
 print(cadena_bits)
@@ -591,6 +583,7 @@ print(byte_array)
 cadena_decodificada = decodificar_de_byteArray(cadena_bits,"ABCD",["00","11","10","01"]) #Ojo con el orden de los alfabetos
 print(cadena_decodificada)
 
+"""
 #Punto 16
 
 #print(calcular_comprension("DDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBAAABBCD",byte_array))
