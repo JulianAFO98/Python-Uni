@@ -51,6 +51,17 @@ def generarListaExtension(alfabeto, probs, grado):
     return listaExtension, listaExtensionProb
 
 
+"""
+Para verificar el teorema de shannon se  parte de las probabilidades de la fuente original y las palabras del código (debe ser un código
+para la fuente original). Se genera la extensión de grado n de la fuente y se calcula la entropia r y la longitud media del código
+para la extensión. Luego se verifica que se cumpla la desigualdad H_r(S) <= L_n/n < H_r(S) + 1/n
+donde H_r(S) es la entropia de la fuente en base r (r es la cantidad de símbolos distintos en el alfabeto del codigo) y 
+L_n es la longitud media del código para la extensión de grado n.
+
+Conclusion: Si se cumple la desigualdad para la extensión de grado n, entonces el código cumple el primer teorema de Shannon, siendo este 
+un codigo codigo optimo para la fuente original y sin ruido.
+"""
+
 def cumple_primer_teorema_shannon(probs_fuente, palabras_codigo, n):
 
     listaExtension,probsExtension = generarListaExtension(palabras_codigo, probs_fuente, n)
@@ -60,6 +71,23 @@ def cumple_primer_teorema_shannon(probs_fuente, palabras_codigo, n):
     print("Entropia r ",H_r_S)
     return (H_r_S) <= (L_n/n)  and  (L_n/n)  < ((H_r_S) + (1 / n))
 
+
+"""
+ Como obtener la redundancia y eficiencia de un código dado las probabilidades de la
+ fuente y las palabras del código.
+ Redundancia R = 1 - (H / L) siendo H la entropía de la fuente y L la longitud media del codigo.
+ Eficiencia = H / L siendo H la entropía de la fuente y L la longitud media del codigo.
+ Que es la entropia de la fuente?
+    La entropía de la fuente es una medida de la incertidumbre o la cantidad promedio de informacion 
+    que provee cada símbolo emitido por la fuente.
+ Conclusion o significado de los valores:
+ - Si la redundancia es 0, el código es óptimo (eficiencia 1).
+ - Si la redundancia es mayor que 0, el código no es tan optimo (eficiencia menor que 1).
+ - Si la eficiencia es 1, el código es óptimo (redundancia 0).
+ - Si la eficiencia es menor que 1, el código no es tan optimo (redundancia mayor que 0).
+ Estas medidas son utiles para evaluar la calidad del codigo en terminos de su capacidad 
+ para representar la informacion de manera eficiente.
+"""
 def calcularRedundanciaYEficiencia(probs_extension, palabras_codigo):
     """
     probs_extension: lista de probabilidades de cada palabra (bloque) en la extensión
@@ -91,7 +119,14 @@ def generarListaParalelasCadenaCaracteresYProbs(cadena):
     probabilidades = [round(val/len(cadena),10) for val in contApariciones]
     return letras,probabilidades
 
-
+"""
+Algoritmo de Huffman para generar el código óptimo basado en las probabilidades de los símbolos.
+Que hace el algoritmo?
+Construye un árbol binario donde los símbolos con mayor probabilidad tienen códigos más cortos,
+y los símbolos con menor probabilidad tienen códigos más largos.
+Es mas eficiente que otros métodos de codificación, como el código de Shannon-Fano,
+ya que siempre produce un código óptimo.
+"""
 def algoritmo_huffman(probs):
     items = [[p, [i]] for i, p in enumerate(probs)]
     tabla_huffman = [""]*len(probs)
@@ -133,6 +168,15 @@ def shanon_fano_recursivo(items,tabla_shanon_fano):
         shanon_fano_recursivo(items[:index_seccionado],tabla_shanon_fano)
         shanon_fano_recursivo(items[index_seccionado:],tabla_shanon_fano)
 
+
+"""
+Algoritmo de Shannon-Fano para generar el código basado en las probabilidades de los simbolos.
+Que hace el algoritmo?
+Construye un árbol binario dividiendo recursivamente la lista de símbolos en dos partes
+de manera que las probabilidades de ambas partes sean lo más equilibradas posible.
+Es menos eficiente que el algoritmo de Huffman, ya que no siempre produce un código óptimo.
+"""
+
 def algoritmo_shanon_fano(probs):
     items = [[p, [i]] for i, p in enumerate(probs)]
     tabla_shanon_fano = [""]*len(probs)
@@ -164,6 +208,7 @@ def codificar_en_byteArray(mensaje_a_codificar, alfabeto_fuente, lista_cadena_ca
     byte_array = bytearray(int(cadena_final_bits[i:i+8], 2) for i in range(0, len(cadena_final_bits), 8))
     cadena_bits = "".join(f"{b:08b}" for b in byte_array)
     return cadena_bits, byte_array
+
 
 def decodificar_de_byteArray(cadena_bits_byteArray, alfabeto_fuente, alfabeto_codigo):
     if len(cadena_bits_byteArray) < 3:
@@ -239,6 +284,64 @@ def calcular_comprension(cadena_alfabeto_fuente,byte_array):
         compresion = tamaño_original_bits / tamaño_comprimido_bits
     print("La compresion es de: ",compresion," veces")
     return round(compresion,4)   
+
+"""
+Objetivos de la compresion de un archivo:
+- Reducir el tamaño del archivo para ahorrar espacio de almacenamiento.
+- Disminuir el tiempo de transferencia al enviar archivos a través de redes.
+- Mejorar la eficiencia en la gestión de datos.
+- Facilitar la transmisión de datos en entornos con ancho de banda limitado.
+- Optimizar el rendimiento de aplicaciones que manejan grandes volúmenes de datos.
+"""
+
+"""
+Metodos de compresion sin perdida:
+Mantienen la integridad de la información (datos descomprimidos iguales a los datos originales). 
+Usados para textos, base de datos, código fuente, imágenes críticas, etc.
+La long. media de código es mayor o igual a la entropía : H <= L
+Estatico:  -Requiere una sola pasada por los datos para codificar
+           -La distribución de probabilidades es fija, puede diferir de los datos a codificar.
+           -No se debe transmitir/almacenar la distribución de probabilidades al decodificador.
+Semi-estatico:  -Requiere dos pasadas por los datos (una para analizar, otra para codificar).
+                -La distribución de probabilidades se basa en los datos a codificar.
+                - Se debe transmitir/almacenar la distribución de probabilidades al decodificador.
+Dinamico:     -Requiere una sola pasada por los datos para codificar.
+              -La distribución de probabilidades se actualiza dinámicamente durante la codificación.
+              - No se debe transmitir/almacenar la distribución de probabilidades al decodificador.
+              -Algoritmos mas complejos y lentos.
+
+            
+Los modelos estáticos y semi estáticos usan una única tabla de probabilidades y 
+son del tipo Huffman. Serán estáticos si la distribución de probabilidades es
+impuesta desde el exterior (por ejemplo la cantidad de e's en el alfabeto hispano,probabilidad ya conocida)
+ y semi estática si dependen de los datos a comprimir.
+
+Huffman no alcanza generalmente el limite H(S) porque no se permiten bits fraccionales ,
+necesita al menos un bit por símbolo. 
+
+Methodos de compresion con perdida:
+Eliminan datos considerados menos importantes, lo que puede resultar en una pérdida de calidad.
+Usados en imágenes, video, sonido (jpeg, mpeg, mp3, entre otros).
+No tienen como límite la entropía: L<H
+
+Los métodos de compresión con pérdida buscan comprimir pensando en la función del archivo a comprimir.
+Por ejemplo si pretendemos comprimir imágenes o videos,
+tratan de reducir la imágenes a zonas de color similar tomando una tolerancia y
+juegan con la capacidad de diferenciación del ojo humano. Cuando se trata de sonido se 
+refieren a la sensibilidad del oído humano. 
+"""
+
+
+"""
+Distancia de Hamming entre palabras de código:
+La distancia de Hamming entre dos palabras de codigo es el número de posiciones en las que difieren.
+Es una medida de cuon diferentes son dos palabras de código.
+La distancia minima de Hamming en un conjunto de palabras de código es la menor distancia de Hamming
+entre cualquier par de palabras en el conjunto.
+La distancia mínima de Hamming es importante porque determina la capacidad del codigo para detectar y corregir errores.
+- Cantidad de errores detectables: Un código con distancia mínima d puede detectar hasta d-1 errores.
+- Cantidad de errores corregibles: Un código con distancia mínima d puede corregir hasta (d-1)/2 errores.   
+"""
 
 def hamming(lista_palabras_codigo):
     distancias = []
