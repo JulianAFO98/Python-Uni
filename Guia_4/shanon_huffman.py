@@ -108,16 +108,18 @@ def calcularRedundanciaYEficiencia(probs, palabras_codigo):
 def generarListaParalelasCadenaCaracteresYProbs(cadena):
     contApariciones = []
     letras = []
-    for i in range(len(cadena)):
-        if cadena[i] not in letras:
-            letras.append(cadena[i])
+    for c in cadena:
+        if c not in letras:
+            letras.append(c)
             contApariciones.append(1)
         else:
-            index = letras.index(cadena[i])
-            contApariciones[index]+=1
-    
-    probabilidades = [round(val/len(cadena),10) for val in contApariciones]
-    return letras,probabilidades
+            i = letras.index(c)
+            contApariciones[i] += 1
+    probabilidades = [round(v / len(cadena), 10) for v in contApariciones]
+    letras_probs_ordenadas = sorted(zip(letras, probabilidades), key=lambda x: x[0])
+    letras_ordenadas, probs_ordenadas = zip(*letras_probs_ordenadas)
+    return list(letras_ordenadas), list(probs_ordenadas)
+
 
 """
 Algoritmo de Huffman para generar el código óptimo basado en las probabilidades de los símbolos.
@@ -393,6 +395,9 @@ def byte_tiene_errores(byte,tipoParidad=0):
     
     return bit_paridad != bit_esperado
 
+"""
+Detectar errores en un código siempre aumenta la redundancia.
+"""
 
 def codificar_con_paridades(cadena, tipoParidad=0):
     if not cadena:
@@ -539,18 +544,20 @@ print(calcularRedundanciaYEficiencia(P, C3))
 C4 = ["11","001","000","10","01"]
 print(calcularRedundanciaYEficiencia(P, C4))
 """
-"""
-letras,probs = generarListaParalelas("ABCDABCBDCBAAABBBCBCBABADBCBABCBDBCCCAAABB")
-print("Letras ",letras) 
-print("Probs ",probs)
-letras,probs = generarListaParalelas("AOEAOEOOOOEOAOEOOEOOEOAOAOEOEUUUIEOEOEO")
-print("Letras ",letras) 
-print("Probs ",probs)
 
 """
-#Punto 12
-#P = { 0.385, 0.154, 0.128, 0.154, 0.179 }
+letras,probs = generarListaParalelasCadenaCaracteresYProbs("ABCDABCBDCBAAABBBCBCBABADBCBABCBDBCCCAAABB")
+print("Letras ",letras) 
+print("Probs ",probs)
+algoritmo_huffman(probs)
+letras,probs = generarListaParalelasCadenaCaracteresYProbs("AOEAOEOOOOEOAOEOOEOOEOAOAOEOEUUUIEOEOEO")
+print("Letras ",letras) 
+print("Probs ",probs)
+algoritmo_huffman(probs)
+
 """
+"""
+#Punto 12
 P  = [0.385, 0.154, 0.128, 0.154, 0.179]
  # uso cualquier valor para palabras_codigo de 0 y 1 para obtener la entropia en base 2
 print("Entropia ",calcular_entropia_fuente_codigo(["00","1","11","10","11"],P))
@@ -562,33 +569,32 @@ print(calcularRedundanciaYEficiencia(P, tabla_huffman))
 print(calcularRedundanciaYEficiencia(P, tabla_shanon_fano))
 """
 """
+
 #Punto 13
 letras,probs = generarListaParalelasCadenaCaracteresYProbs("58784784525368669895745123656253698989656452121702300223659")
-mostrarListaConIndices(letras)
-mostrarListaConIndices(probs)
+#mostrarListaConIndices(letras)
+#mostrarListaConIndices(probs)
 tabla_huffman = algoritmo_huffman(probs) 
+print(calcular_entropia_fuente_codigo(tabla_huffman,probs))
 tabla_shanon_fano = algoritmo_shanon_fano(probs)
 print(calcular_longitud_media_codigo(tabla_huffman,probs))
 print(calcular_longitud_media_codigo(tabla_shanon_fano,probs))
 print(calcularRedundanciaYEficiencia(probs, tabla_huffman))
 print(calcularRedundanciaYEficiencia(probs, tabla_shanon_fano)) # preguntar
 """
-#Punto 15
+#Punto 15 y Punto 16
 
 """
-
 cadena_bits,byte_array = codificar_en_byteArray("DDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBAAABBCD","ABCD",["00","11","10","01"]) # deberia devolver bytearray(b'\x00\x01\x02\x03\x00\x01\x02\x03')
 print(cadena_bits)
 print(byte_array)
 cadena_decodificada = decodificar_de_byteArray(cadena_bits,"ABCD",["00","11","10","01"]) #Ojo con el orden de los alfabetos
 print(cadena_decodificada)
-
+calcular_comprension("DDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBAAABBCD",byte_array)
 """
-#Punto 16
-
-#print(calcular_comprension("DDDDDDDDDBBBBBBBBBBBBBBBBBBBBBBBBAAABBCD",byte_array))
 
 #punto 17
+
 """
 
 
@@ -615,9 +621,10 @@ print("redundancia y eficiencia ",calcularRedundanciaYEficiencia(probs, tabla_hu
 
 cadena_decodificada = decodificar_de_byteArray(cadena_bits," ,.:;ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",tabla_huffman)
 print(cadena_decodificada)
+"""
 
 """
-"""
+
 bytearray_cadena = codificar_usando_RCL("XXXYZZZZ")
 print("Compresion RCL ",calcular_comprension("XXXYZZZZ",bytearray_cadena))
 bytearray_cadena = codificar_usando_RCL("AAAABBBCCDAA")
@@ -625,8 +632,10 @@ print("Compresion RCL ",calcular_comprension("AAAABBBCCDAA",bytearray_cadena))
 bytearray_cadena = codificar_usando_RCL("UUOOOOAAAIEUUUU")
 print("Compresion RCL ",calcular_comprension("UUOOOOAAAIEUUUU",bytearray_cadena))
 """
+
 #punto 23
 """
+
 C = ["0100100","0101000","0010010","0100000"]
 distancia,errores_detectables,errores_corregibles = hamming(C)
 print(distancia,errores_detectables,errores_corregibles)
@@ -638,13 +647,13 @@ distancia,errores_detectables,errores_corregibles = hamming(C)
 print(distancia,errores_detectables,errores_corregibles)
 """
 """
+
 print(devolver_byte_con_paridad("c"))
 print(byte_tiene_errores(devolver_byte_con_paridad("c")))
 
-mensaje = codificar_con_paridades("Hola")
+mensaje = codificar_con_paridades("LUNA")
 print(mensaje)
 mensajeDescifrado = decodificar_con_paridades(mensaje)
 print(mensajeDescifrado)
-
-
 """
+
