@@ -1,5 +1,14 @@
 import math
 
+"""
+Medio por el que se transmite la información desde la fuente de información al destino. 
+La señal se codifica antes de ingresar al canal y se decodifica a la salida del canal.
+Un canal puede introducir errores en la transmisión de la información debido a ruido, interferencias u otras
+imperfecciones.
+P(bj/ai) = probabilidad de que se reciba el símbolo bi dado que se envió el símbolo aj.
+Matriz de canal: filas representan los simbolos de salida, columnas los simbolos de entrada.
+Como se lee ? Probabilidad de recibir bj dado que se envió ai.
+"""
 def generar_matriz_canal(cadena_sin_codificar,cadena_salida):
     lista_letras = []
     cantidad_elementos = len(cadena_sin_codificar)
@@ -42,7 +51,13 @@ def generar_matriz_canal(cadena_sin_codificar,cadena_salida):
 
     return matriz
 
-
+"""
+Que significado tienen las probabilidades a priori? H(A)
+Son las probabilidades de que se envíe cada símbolo de entrada antes de observar cualquier símbolo de salida.
+Estas probabilidades reflejan la distribución de probabilidad de los símbolos de entrada en la fuente de información.
+Una entropia a priori alta indica una mayor incertidumbre sobre qué símbolo se enviará, mientras que una entropía baja indica
+menos incertidumbre.
+"""
 def a_priori(cadena):
     total = len(cadena)
     contador = {}
@@ -71,6 +86,14 @@ c   z   z   z
    z   z   z
 l  p1  p2  p3 
 """
+
+"""
+Que son las probabilidades de salida?
+Son las probabilidades marginales de recibir cada símbolo de salida, independientemente de qué símbolo de entrada se haya enviado.
+Se calculan sumando las probabilidades conjuntas P(ai, bj) sobre todas las posibles entradas ai para cada salida bj.
+Estas probabilidades reflejan la distribución de probabilidad de los símbolos de salida en el canal. Es decir,
+la probabilidad de observar cada símbolo de salida visto desde la perspectiva del receptor, sin conocimiento previo de qué símbolo de entrada se envió.
+"""
 def generar_probs_salida(probs_priori, matriz_canal):
     num_salidas = len(matriz_canal[0])  # cantidad de columnas
     lista_salida = [0 for _ in range(num_salidas)]
@@ -83,6 +106,14 @@ def generar_probs_salida(probs_priori, matriz_canal):
     
     return lista_salida
 
+"""
+Que son las probabilidades conjuntas?
+Son las probabilidades de que ocurra un par específico de eventos, es decir, la probabilidad de que se envíe
+un símbolo de entrada ai y se reciba un símbolo de salida bj simultáneamente.
+Basicamente es P(ai,bj) = P(ai) * P(bj/ai)
+A mayor cantidad de probabilidad conjunta, mayor es la probabilidad de que ocurra ese par específico de eventos.
+"""
+
 def generar_matriz_eventos_simultaneos(probs_priori, matriz_canal):
     matriz_simultaneos = []
     for i in range(len(probs_priori)):
@@ -92,6 +123,15 @@ def generar_matriz_eventos_simultaneos(probs_priori, matriz_canal):
         matriz_simultaneos.append(fila)
     
     return matriz_simultaneos
+
+"""
+Que son las probabilidades a posteriori ?P(ai/bj) = P(ai,bj) / P(bj)
+Son las probabilidades condicionales de que se haya enviado un símbolo de entrada ai dado que se ha recibido un símbolo de salida bj.
+Estas probabilidades sirven para actualizar lo que creemos sobre cuál fue la entrada después de observar la salida.
+A mayor probabilidad a posteriori, mayor es la confianza de que se envió ese símbolo de entrada específico dado el símbolo de salida observado.
+Por lo tanto a mayor probabilidad a posteriori, mayor seguridad sobre el símbolo de entrada enviado.
+Por eso, es mejor que, para un símbolo de salida dado, alguna probabilidad a posteriori sea alta: indica mayor seguridad al inferir qué símbolo se envió.
+"""
 
 def generar_matriz_posteriori(probs_priori,matriz_canal):
     probs_salida = generar_probs_salida(probs_priori,matriz_canal)
@@ -140,6 +180,34 @@ def calcular_entropia_salida(probs_priori, matriz_canal):
     print("Entropia de salida",round(entropia_salida,3))
     return round(entropia_salida,3)
 
+
+"""
+Entropia a priori H(A)
+Que es la entropía a priori?
+Es una medida de la incertidumbre asociada a la fuente de información antes de observar cualquier símbolo de salida.
+Que significa una entropía a priori alta?
+Una entropía a priori alta indica una mayor incertidumbre sobre qué símbolo se enviará, lo que implica que la fuente de información es más impredecible.
+Que significa una entropía a priori baja?
+Una entropía a priori baja indica menos incertidumbre, lo que implica que la fuente de información es más predecible.
+Para que sirve la entropía a priori?
+La entropía a priori sirve para cuantificar la cantidad de información promedio que se espera recibir de la fuente de información antes de observar cualquier salida del canal.
+
+Entropía a posteriori H(A|bj)
+Que es la entropía a posteriori?
+Es una medida de la incertidumbre restante sobre el símbolo de entrada ai después de observar un símbolo de salida específico bj.
+Que significa una entropía a posteriori alta?
+Una entropía a posteriori alta indica que, incluso después de observar la salida bj, todavía hay mucha incertidumbre sobre qué símbolo de entrada se envió.
+Que significa una entropía a posteriori baja?
+Una entropía a posteriori baja indica que la observación de la salida bj ha reducido significativamente la incertidumbre sobre el símbolo de entrada enviado.
+Para que sirve la entropía a posteriori?
+La entropía a posteriori sirve para cuantificar la cantidad de incertidumbre que queda sobre el símbolo de entrada después de observar una salida específica del canal.
+
+Como se interpretan juntas?
+La comparación entre la entropía a priori y la entropía a posteriori permite evaluar la eficacia del canal en términos de reducción de incertidumbre.
+Un canal eficiente es aquel en el que la entropía a posteriori H(A|B) es significativamente menor que la entropía a priori H(A). Esto indica que la observación del 
+símbolo de salida reduce fuertemente la incertidumbre acerca del símbolo de entrada, proporcionando información valiosa sobre lo que fue transmitido.
+"""
+
 def lista_entropias(probs_priori, matriz_canal):
     entropia_priori = 0
     lista_entropia_posteriori = []
@@ -157,6 +225,39 @@ def lista_entropias(probs_priori, matriz_canal):
         entropia_priori += probs_priori[i] * info(probs_priori[i])
 
     return round(entropia_priori, 3), lista_entropia_posteriori
+
+"""
+H(A|B) = equivocation o ruido
+Que es la equivocación H(A|B)?
+Es una medida de la incertidumbre restante sobre el símbolo de entrada A después de observar el símbolo de salida B.
+-Mide la información que queda en A después de observar B.
+-Pérdida de información sobre A causada por el canal.
+-Cantidad de información sobre A que no deja pasar el canal
+
+Que significa una equivocación alta?
+Una equivocación alta indica que, incluso después de observar la salida B, todavía hay mucha incertidumbre sobre qué símbolo de entrada se envió.
+Que significa una equivocación baja?
+Una equivocación baja indica que la observación de la salida B ha reducido significativamente la incertidumbre sobre el símbolo de entrada enviado.
+Para que sirve la equivocación?
+La equivocación sirve para cuantificar la cantidad de incertidumbre que queda sobre el símbolo de entrada después de observar la salida del canal.
+
+H(B|A) = perdida
+Que es la pérdida H(B|A)?
+Es una medida de la incertidumbre sobre el símbolo de salida B dado que se conoce el símbolo de entrada A.
+Que significa una pérdida alta?
+Una pérdida alta indica que, incluso conociendo el símbolo de entrada A, todavía hay mucha incertidumbre sobre qué símbolo de salida se recibirá.
+Que significa una pérdida baja?
+Una pérdida baja indica que conocer el símbolo de entrada A reduce significativamente la incertidumbre sobre el símbolo de salida recibido.
+Para que sirve la pérdida?
+La pérdida sirve para cuantificar la cantidad de incertidumbre sobre el símbolo de salida del canal dado que se conoce el símbolo de entrada.
+Como se interpretan juntas?
+La comparación entre la equivocación H(A|B) y la pérdida H(B|A) permite evaluar la eficacia del canal en términos de transmisión de información.
+
+
+H(A|B) te dice qué tan difícil es adivinar el input a partir del output.
+H(B|A) te dice qué tan impredecible es la salida a partir del input.
+
+"""
 
 def calcular_equivocacion(probs_priori, matriz_canal):
     # probs_priori = [P(a1), P(a2), ...]
@@ -185,6 +286,20 @@ def calcular_equivocacion(probs_priori, matriz_canal):
     
     return H_A_dado_B, H_B_dado_A # H(A|B) H(B|A)
 
+"""
+Que es la entropía afín H(A,B)?
+Es una medida de la incertidumbre conjunta sobre los símbolos de entrada A y salida B en un canal de comunicación.
+Que significa una entropía afín alta?
+Una entropía afín alta indica que hay mucha incertidumbre conjunta sobre los pares de símbolos (A, B), 
+lo que implica que el canal introduce una gran cantidad de variabilidad en la transmisión.
+Que significa una entropía afín baja?
+Una entropía afín baja indica que hay menos incertidumbre conjunta sobre los pares de símbolos (A, B),
+lo que implica que el canal es más predecible en su comportamiento.
+Para que sirve la entropía afín?
+La entropía afín sirve para cuantificar la cantidad total de incertidumbre en el sistema de comunicación,
+incluyendo tanto la fuente de información como el canal.
+"""
+
 def calcular_entropia_afin(probs_priori, matriz_canal):
     probs_simultaneas = generar_matriz_eventos_simultaneos(probs_priori, matriz_canal)
     entropia_afin = 0
@@ -193,6 +308,24 @@ def calcular_entropia_afin(probs_priori, matriz_canal):
             entropia_afin+= probs_simultaneas[i][j] * info(probs_simultaneas[i][j])
     print("Entropia Afin: ",entropia_afin)
     return entropia_afin
+
+"""
+Que es la información mutua I(A;B)? H(A) - H(A|B)
+Es una medida de la cantidad de información que el símbolo de salida B proporciona sobre el símbolo de entrada A en un canal de comunicación.
+Es la cantidad de información sobre A, menos la cantidad de información que todavía hay en A después de observar la salida.
+-Es la cantidad de información que se obtiene de A gracias al conocimiento de B.
+-Es la incertidumbre sobre la entrada del canal que se resuelve observando la salida del canal.
+-Es la cantidad de información sobre A que atraviesa el canal.
+Que significa una información mutua alta?
+Una información mutua alta indica que la salida B proporciona mucha información sobre la entrada A,
+lo que implica que el canal es eficiente en la transmisión de información.
+Que significa una información mutua baja?
+Una información mutua baja indica que la salida B proporciona poca información sobre la entrada A,
+lo que implica que el canal introduce mucha incertidumbre en la transmisión.
+Para que sirve la información mutua?
+La información mutua sirve para cuantificar la eficacia del canal en términos de transmisión de información,
+permitiendo evaluar cuánto conocimiento sobre la entrada se puede obtener a partir de la salida observada.
+"""
 
 def calcular_informacion_mutua(probs_priori, matriz_canal):
     # probs_simultaneas[i][j] = P(A=i, B=j)
@@ -412,13 +545,15 @@ def calcular_probabilidad_error(probs_priori, matriz_canal):
 
 #Punto 3
 """
-print(generar_matriz_canal("1101011001101010010101010100011111","1001111111100011101101010111110110"))
+generar_matriz_canal("1101011001101010010101010100011111","1001111111100011101101010111110110")
 print(a_priori("1101011001101010010101010100011111"))
-print(generar_matriz_canal("110101100110101100110101100111110011","110021102110022010220121122100112011"))
+generar_matriz_canal("110101100110101100110101100111110011","110021102110022010220121122100112011")
 print(a_priori("110101100110101100110101100111110011"))
+"""
+
 
 """
-"""
+
 print(generar_probs_salida([0.3,0.3,0.4],[[0.4,0.4,0.2],
                                           [0.3,0.2,0.5],
                                           [0.3,0.4,0.3]]))
@@ -435,14 +570,16 @@ mostrar_matriz_encuadrada(mat_posteriori)
 """
 """
 
+
 mat_canal = generar_matriz_canal("110101100110101100110101100111110011","110021102110022010220121122100112011")
 mat_posteriori = generar_matriz_posteriori(a_priori("110101100110101100110101100111110011"),mat_canal)
 mat_simultaneos = generar_matriz_eventos_simultaneos(a_priori("110101100110101100110101100111110011"),mat_canal)
 mostrar_matriz_encuadrada(mat_posteriori)
 mostrar_matriz_encuadrada(mat_simultaneos)
-
-
 """
+
+
+
 """
 
 mat_canal = generar_matriz_canal("abcacaabbcacaabcacaaabcaca","01010110011001000100010011")
@@ -450,6 +587,10 @@ entropia_priori,entropia_posteriori = lista_entropias(a_priori("abcacaabbcacaabc
 
 print(entropia_priori)
 print(entropia_posteriori)
+"""
+
+"""
+
 mat_canal = generar_matriz_canal("1101011001101010010101010100011111","1001111111100011101101010111110110")
 entropia_priori,entropia_posteriori = lista_entropias(a_priori("1101011001101010010101010100011111"),mat_canal)
 
@@ -467,6 +608,7 @@ print(entropia_priori)
 print(entropia_posteriori)
 """
 """
+
 entropia_priori,entropia_posteriori = lista_entropias([0.14,0.52,0.34],[[0.5,0.3,0.2],[0,0.4,0.6],[0.2,0.8,0]])
 entropia_priori,entropia_posteriori = lista_entropias([0.25,0.25,0.5],[[0.25,0.25,0.25,0.25],[0.25,0.25,0,0.5],[0.5,0,0.5,0]])
 entropia_priori,entropia_posteriori = lista_entropias([0.12,0.24,0.14,0.5],[[0.25,0.15,0.3,0.3],[0.23,0.27,0.25,0.25],[0.1,0.4,0.25,0.25],[0.34,0.26,0.2,0.2]])
