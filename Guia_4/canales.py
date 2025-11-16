@@ -241,6 +241,8 @@ Una equivocación baja indica que la observación de la salida B ha reducido sig
 Para que sirve la equivocación?
 La equivocación sirve para cuantificar la cantidad de incertidumbre que queda sobre el símbolo de entrada después de observar la salida del canal.
 
+
+
 H(B|A) = perdida
 Que es la pérdida H(B|A)?
 Es una medida de la incertidumbre sobre el símbolo de salida B dado que se conoce el símbolo de entrada A.
@@ -256,7 +258,13 @@ La comparación entre la equivocación H(A|B) y la pérdida H(B|A) permite evalu
 
 H(A|B) te dice qué tan difícil es adivinar el input a partir del output.
 H(B|A) te dice qué tan impredecible es la salida a partir del input.
-
+Entropias relaciones importantes:
+H(A,B)=H(B)+H(A/B)
+-H(B)= Nro. mínimo de preguntas binarias en promedio para determinar la salida.
+-H(A/B) =Nro. mínimo de preguntas binarias en promedio para determinar la entrada conocida la salida. Se lo denomina RUIDO.
+H(A,B)=H(A)+H(B/A)
+-H(A) = Nro mínimo de preguntas binarias en promedio para determinar la entrada.
+-H(B/A)=Nro. mínimo de preguntas binarias en promedio para determinar la salida conocida la entrada. Se lo denomina PERDIDA.
 """
 
 def calcular_equivocacion(probs_priori, matriz_canal):
@@ -325,6 +333,20 @@ lo que implica que el canal introduce mucha incertidumbre en la transmisión.
 Para que sirve la información mutua?
 La información mutua sirve para cuantificar la eficacia del canal en términos de transmisión de información,
 permitiendo evaluar cuánto conocimiento sobre la entrada se puede obtener a partir de la salida observada.
+
+Propiedades importantes:
+-I(A,B)⩾0 No se pierde en absoluto información por el hecho de observar la salida del canal.
+ Además la condición para que la información mutua sea nula es que los símbolos de entrada y salida sea estadisticamente independientes.
+-I (A,B) = I (B, A) (reciprocidad de la información mutua)
+Luego:
+I(A,B) = H(B) - H(B/A) 
+H(A,B)=H(A)+H(B)-I(A,B)
+I(A,B) es una medida de la incertidumbre sobre la salida del canal que se resuelve enviando la entrada.
+Es un indicador de la información ganada debido al acople entre las variables A (entrada) y B (salida).
+La información mutua depende de:
+-La fuente que genera los símbolos de entrada del canal (sus probabilidades);
+-El propio canal, a través de las probabilidades P(bj/ai) del canal.Es decir depende del canal y cómo se use el canal(indica lo bien o mal que se está usando un canal)
+-Permite elegir el canal adecuado para la transmisión de símbolos generados por una fuente fija
 """
 
 def calcular_informacion_mutua(probs_priori, matriz_canal):
