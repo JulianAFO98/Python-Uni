@@ -1,25 +1,39 @@
 
 import math
 from operator import itemgetter
-
+"""
+Cómo se calcula: Se aplica logaritmo con la base especificada al número y se multiplica por -1.
+Si el número es 0, retorna 0 para evitar el logaritmo de cero (indefinido).
+"""
 def info(val,base): 
     if val == 0:
         return 0
     return -math.log(val,base)
-
+"""
+Cómo se calcula: Se aplica la función info() a cada elemento de la lista usando la base especificada.
+"""
 def generarListaInfo(lista,base):
     return [info(val,base) for val in lista]
 
-
+"""
+Cómo se calcula: Se calcula la longitud de cada palabra en la lista.
+"""
 def generar_lista_longitudes(palabras):
     lista_longitudes = [len(palabra) for palabra in palabras]
     return lista_longitudes
 
-
+"""
+Cómo se calcula: Se suman los productos de cada probabilidad multiplicada por su longitud de código correspondiente.
+L = Σ P(símbolo) x longitud(código)
+"""
 def calcular_longitud_media_codigo(palabras_codigo,probabilidades):
     lista_longitudes = generar_lista_longitudes(palabras_codigo)
     return sum(probabilidades[i] * lista_longitudes[i] for i in range(len(palabras_codigo)))
 
+"""
+Cómo se calcula: Se recorren todas las palabras y se extrae cada letra única encontrada,
+concatenándolas en una sola cadena.
+"""
 def obtener_cadena_alfabeto_codigo(palabras):
     cadena = ""
     for palabra in palabras:
@@ -28,11 +42,19 @@ def obtener_cadena_alfabeto_codigo(palabras):
                 cadena += letra
     return cadena
 
+"""
+Cómo se calcula: Se obtiene el número de símbolos distintos en el alfabeto del código (la base),
+luego se calcula H = Σ P(símbolo) x log_base(P(símbolo)) multiplicado por -1.
+"""
 def calcular_entropia_fuente_codigo(palabras_codigo,probabilidades):
     simbolos_distintos = obtener_cadena_alfabeto_codigo(palabras_codigo)
     base = len(simbolos_distintos)
     return sum(p * info(p,base) for p in probabilidades)
 
+"""
+Cómo se calcula: Se generan todas las combinaciones posibles de n símbolos del alfabeto,
+y se calcula la probabilidad de cada combinación multiplicando las probabilidades individuales.
+"""
 def generarListaExtension(alfabeto, probs, grado):
     cantFilas = len(alfabeto) ** grado
     listaExtension = ["" for _ in range(cantFilas)]
@@ -61,7 +83,10 @@ L_n es la longitud media del código para la extensión de grado n.
 Conclusion: Si se cumple la desigualdad para la extensión de grado n, entonces el código cumple el primer teorema de Shannon, siendo este 
 un codigo codigo optimo para la fuente original y sin ruido.
 """
-
+"""
+Cómo se calcula: Se genera la extensión de grado n de la fuente, se calcula la longitud media del código
+para esa extensión, y se verifica que cumpla: H_r(S) <= L_n/n < H_r(S) + 1/n
+"""
 def cumple_primer_teorema_shannon(probs_fuente, palabras_codigo, n):
 
     listaExtension,probsExtension = generarListaExtension(palabras_codigo, probs_fuente, n)
@@ -88,6 +113,10 @@ def cumple_primer_teorema_shannon(probs_fuente, palabras_codigo, n):
  Estas medidas son utiles para evaluar la calidad del codigo en terminos de su capacidad 
  para representar la informacion de manera eficiente.
 """
+"""
+Cómo se calcula: Se calcula la longitud media del código (L) y la entropía de la fuente (H),
+luego se calcula eficiencia = H/L y redundancia = 1 - eficiencia.
+"""
 def calcularRedundanciaYEficiencia(probs, palabras_codigo):
     """
     probs_extension: lista de probabilidades de cada palabra (bloque) en la extensión
@@ -104,7 +133,11 @@ def calcularRedundanciaYEficiencia(probs, palabras_codigo):
     R = 1 - eficiencia
     return round(R,4), round(eficiencia,4)
 
-
+"""
+Cómo se calcula: Se cuentan las apariciones de cada carácter en la cadena, se calcula
+la probabilidad de cada uno dividiendo por la longitud total, y se retornan los caracteres
+y probabilidades ordenados alfabéticamente.
+"""
 def generarListaParalelasCadenaCaracteresYProbs(cadena):
     contApariciones = []
     letras = []
@@ -129,6 +162,11 @@ y los símbolos con menor probabilidad tienen códigos más largos.
 Es mas eficiente que otros métodos de codificación, como el código de Shannon-Fano,
 ya que siempre produce un código óptimo.
 """
+"""
+Cómo se calcula: Se construye un árbol binario ordenando los símbolos por probabilidad,
+combinando iterativamente los dos elementos con menor probabilidad hasta que queda un solo elemento.
+Los códigos se asignan con 0 y 1 según la rama del árbol.
+"""
 def algoritmo_huffman(probs):
     items = [[p, [i]] for i, p in enumerate(probs)]
     tabla_huffman = [""]*len(probs)
@@ -146,7 +184,10 @@ def algoritmo_huffman(probs):
     print("Tabla huffman final ",tabla_huffman)
     return tabla_huffman
 
-
+"""
+Cómo se calcula: Se divide recursivamente la lista de símbolos en dos partes buscando que sus probabilidades
+sean lo más equilibradas posible, asignando 0 a una parte y 1 a la otra, hasta que cada símbolo esté solo.
+"""
 def shanon_fano_recursivo(items,tabla_shanon_fano):
     if len(items) > 1:
         items = sorted(items, key=itemgetter(0),reverse=True) #ordeno de mayor a menor
@@ -178,14 +219,20 @@ Construye un árbol binario dividiendo recursivamente la lista de símbolos en d
 de manera que las probabilidades de ambas partes sean lo más equilibradas posible.
 Es menos eficiente que el algoritmo de Huffman, ya que no siempre produce un código óptimo.
 """
-
+"""
+Cómo se calcula: Se divide recursivamente la lista de símbolos buscando equilibrar las probabilidades,
+asignando 0 y 1 según cada división hasta que todos los símbolos están codificados.
+"""
 def algoritmo_shanon_fano(probs):
     items = [[p, [i]] for i, p in enumerate(probs)]
     tabla_shanon_fano = [""]*len(probs)
     shanon_fano_recursivo(items,tabla_shanon_fano)
     print("Tabla shanon fano final ",tabla_shanon_fano)
     return tabla_shanon_fano
-
+"""
+Cómo se calcula: Se crea una relación entre caracteres fuente y códigos, se concatenan todos los códigos,
+se rellena con ceros, se prepone un encabezado de 3 bits indicando la cantidad de relleno, y se convierte a bytearray.
+"""
 def codificar_en_byteArray(mensaje_a_codificar, alfabeto_fuente, lista_cadena_caracteres):
     relacion = {alfabeto_fuente[i]: lista_cadena_caracteres[i] for i in range(len(alfabeto_fuente))}
 
@@ -211,7 +258,10 @@ def codificar_en_byteArray(mensaje_a_codificar, alfabeto_fuente, lista_cadena_ca
     cadena_bits = "".join(f"{b:08b}" for b in byte_array)
     return cadena_bits, byte_array
 
-
+"""
+Cómo se calcula: Se extrae el encabezado de 3 bits para saber cuántos ceros de relleno hay,
+se remueven esos ceros, se reemplazan los códigos por caracteres usando una tabla de búsqueda invertida.
+"""
 def decodificar_de_byteArray(cadena_bits_byteArray, alfabeto_fuente, alfabeto_codigo):
     if len(cadena_bits_byteArray) < 3:
         raise ValueError("Entrada demasiado corta para contener el encabezado.")
@@ -236,7 +286,10 @@ def decodificar_de_byteArray(cadena_bits_byteArray, alfabeto_fuente, alfabeto_co
     return cadena_decodificada
 
 
-
+"""
+Cómo se calcula: Se recorre la cadena contando cuántas veces se repite cada carácter consecutivo.
+Se almacenan pares de (carácter, cantidad) en un bytearray.
+"""
 def codificar_usando_RCL(cadena):
     if not cadena:
         return bytearray()
@@ -272,7 +325,9 @@ def codificar_usando_RCL(cadena):
 
     return bytearray_cadena
 
-
+"""
+Cómo se calcula: Se divide el tamaño original en bits (cadena * 8) por el tamaño comprimido en bits (bytearray * 8).
+"""
 def calcular_comprension(cadena_alfabeto_fuente,byte_array):
     compresion = -1
     # Calcular el tamaño original en bits
@@ -344,6 +399,10 @@ La distancia mínima de Hamming es importante porque determina la capacidad del 
 - Cantidad de errores detectables: Un código con distancia mínima d puede detectar hasta d-1 errores.
 - Cantidad de errores corregibles: Un código con distancia mínima d puede corregir hasta (d-1)/2 errores.   
 """
+"""
+Como se calcula: Se compara cada par de palabras y se cuenta cuántos bits difieren.
+Luego se busca la distancia mínima entre todos los pares, y se calcula la cantidad de errores detectables y corregibles.
+"""
 
 def hamming(lista_palabras_codigo):
     distancias = []
@@ -364,6 +423,10 @@ def hamming(lista_palabras_codigo):
 
     return distancia_minima,cantidad_errores_detectables,cantidad_errores_correjibles
 
+"""
+Cómo se calcula: Se cuentan los bits en 1 en el byte, se determina si la paridad es par (0) o impar (1),
+se desplaza el byte un bit a la izquierda, y se agrega el bit de paridad al final.
+"""
 #tipo paridad -> 0 para par (default), 1 para paridad impar
 def devolver_byte_con_paridad(byte,tipoParidad = 0):
     byte = ord(byte)
@@ -380,6 +443,10 @@ def devolver_byte_con_paridad(byte,tipoParidad = 0):
 
     return byte_con_paridad
 
+"""
+Cómo se calcula: Se extrae el bit de paridad (el menos significativo), se cuenta los bits en 1 del resto,
+y se verifica si el bit de paridad coincide con lo esperado.
+"""
 def byte_tiene_errores(byte,tipoParidad=0):
     bit_paridad = byte & 1 # tomo el menos significativo
     byte = byte >> 1
@@ -398,7 +465,10 @@ def byte_tiene_errores(byte,tipoParidad=0):
 """
 Detectar errores en un código siempre aumenta la redundancia.
 """
-
+"""
+Cómo se calcula: Se agrega un bit de paridad vertical a cada carácter, se calcula la paridad
+longitudinal (por cada columna), se calcula el bit de paridad cruzada, y se retorna todo como bytearray.
+"""
 def codificar_con_paridades(cadena, tipoParidad=0):
     if not cadena:
         return bytearray()
@@ -445,7 +515,11 @@ def codificar_con_paridades(cadena, tipoParidad=0):
     return resultado
 
 
-
+"""
+Cómo se calcula: Se extrae la paridad cruzada y longitudinal del final, se verifican los errores
+individuales de cada byte, se verifica la paridad longitudinal, se verifica la paridad cruzada,
+y si todo es correcto se reconstruye la cadena original sin el bit de paridad vertical.
+"""
 def decodificar_con_paridades(byte_seq, tipoParidad=0):
     if not byte_seq or len(byte_seq) < 3:
         return ""
@@ -500,7 +574,9 @@ def decodificar_con_paridades(byte_seq, tipoParidad=0):
 
 
 
-
+"""
+Cómo se calcula: Se itera sobre la lista y se imprime cada elemento con su índice en un formato tabular.
+"""
 def mostrarListaConIndices(lista):
     for i in range(len(lista)):
         print(f"[{i}]={lista[i]}",end="  ")

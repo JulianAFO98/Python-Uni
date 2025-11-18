@@ -9,6 +9,11 @@ P(bj/ai) = probabilidad de que se reciba el símbolo bi dado que se envió el s�
 Matriz de canal: filas representan los simbolos de salida, columnas los simbolos de entrada.
 Como se lee ? Probabilidad de recibir bj dado que se envió ai.
 """
+"""
+Cómo se calcula: Se cuentan cuántas veces aparece cada par (entrada, salida) en las cadenas observadas,
+llevando estos conteos en una matriz. Luego, se normaliza cada fila dividiendo por la suma de esa fila,
+para obtener las probabilidades condicionales P(salida | entrada).
+"""
 def generar_matriz_canal(cadena_sin_codificar,cadena_salida):
     lista_letras = []
     cantidad_elementos = len(cadena_sin_codificar)
@@ -51,12 +56,15 @@ def generar_matriz_canal(cadena_sin_codificar,cadena_salida):
 
     return matriz
 
-"""
-Que significado tienen las probabilidades a priori? H(A)
+"""Que significado tienen las probabilidades a priori? H(A)
 Son las probabilidades de que se envíe cada símbolo de entrada antes de observar cualquier símbolo de salida.
 Estas probabilidades reflejan la distribución de probabilidad de los símbolos de entrada en la fuente de información.
 Una entropia a priori alta indica una mayor incertidumbre sobre qué símbolo se enviará, mientras que una entropía baja indica
 menos incertidumbre.
+"""
+"""
+Cómo se calcula: Se cuentan cuántas veces aparece cada símbolo en la cadena de entrada. Luego, cada conteo
+se divide por la longitud total de la cadena para obtener la probabilidad de cada símbolo.
 """
 def a_priori(cadena):
     total = len(cadena)
@@ -87,12 +95,15 @@ c   z   z   z
 l  p1  p2  p3 
 """
 
-"""
-Que son las probabilidades de salida?
+"""Que son las probabilidades de salida?
 Son las probabilidades marginales de recibir cada símbolo de salida, independientemente de qué símbolo de entrada se haya enviado.
 Se calculan sumando las probabilidades conjuntas P(ai, bj) sobre todas las posibles entradas ai para cada salida bj.
 Estas probabilidades reflejan la distribución de probabilidad de los símbolos de salida en el canal. Es decir,
 la probabilidad de observar cada símbolo de salida visto desde la perspectiva del receptor, sin conocimiento previo de qué símbolo de entrada se envió.
+"""
+"""
+Cómo se calcula: Para cada símbolo de salida, se suman los productos de cada probabilidad de entrada
+multiplicada por la probabilidad condicional de obtener esa salida desde esa entrada: P(salida) = Σ P(entrada) × P(salida|entrada)
 """
 def generar_probs_salida(probs_priori, matriz_canal):
     num_salidas = len(matriz_canal[0])  # cantidad de columnas
@@ -114,6 +125,10 @@ Basicamente es P(ai,bj) = P(ai) * P(bj/ai)
 A mayor cantidad de probabilidad conjunta, mayor es la probabilidad de que ocurra ese par específico de eventos.
 """
 
+"""
+Cómo se calcula: Para cada combinación (entrada, salida), se multiplica la probabilidad a priori de esa entrada
+por la probabilidad condicional de obtener esa salida desde esa entrada: P(entrada, salida) = P(entrada) × P(salida|entrada)
+"""
 def generar_matriz_eventos_simultaneos(probs_priori, matriz_canal):
     matriz_simultaneos = []
     for i in range(len(probs_priori)):
@@ -133,6 +148,10 @@ Por lo tanto a mayor probabilidad a posteriori, mayor seguridad sobre el símbol
 Por eso, es mejor que, para un símbolo de salida dado, alguna probabilidad a posteriori sea alta: indica mayor seguridad al inferir qué símbolo se envió.
 """
 
+"""
+Cómo se calcula: Se aplica el Teorema de Bayes: P(entrada|salida) = P(entrada, salida) / P(salida).
+Primero se calcula el numerador (probabilidades conjuntas) y se divide por el denominador (probabilidad marginal de salida).
+"""
 def generar_matriz_posteriori(probs_priori,matriz_canal):
     probs_salida = generar_probs_salida(probs_priori,matriz_canal)
     matriz_simultaneos = generar_matriz_eventos_simultaneos(probs_priori,matriz_canal)
@@ -144,6 +163,10 @@ def generar_matriz_posteriori(probs_priori,matriz_canal):
         matriz_posteriori.append(fila)
     return matriz_posteriori
 
+"""
+Cómo se calcula: Se organiza la matriz con etiquetas y se imprime con formato visual. Si no hay etiquetas,
+se usan índices numéricos. Cada valor se imprime con 4 decimales y alineación fija.
+"""
 def mostrar_matriz_encuadrada(matriz, etiquetas_filas=None, etiquetas_columnas=None):
     filas = len(matriz)
     columnas = len(matriz[0]) if filas > 0 else 0
@@ -167,11 +190,19 @@ def mostrar_matriz_encuadrada(matriz, etiquetas_filas=None, etiquetas_columnas=N
             print(f"{valor:8.4f}", end="")
         print()
 
+"""
+Cómo se calcula: Se aplica logaritmo binario (base 2) al número y se multiplica por -1.
+Si el número es 0, retorna 0 para evitar el logaritmo de cero (indefinido).
+"""
 def info(num):
     return -math.log2(num)  if num !=0 else 0
 
 
 
+"""
+Cómo se calcula: Se calcula la suma ponderada de la autoinformación de cada símbolo de salida:
+H(salida) = -Σ P(salida) × log₂(P(salida))
+"""
 def calcular_entropia_salida(probs_priori, matriz_canal):
     probs_priori = generar_probs_salida(probs_priori,matriz_canal)
     entropia_salida = 0
@@ -208,6 +239,10 @@ Un canal eficiente es aquel en el que la entropía a posteriori H(A|B) es signif
 símbolo de salida reduce fuertemente la incertidumbre acerca del símbolo de entrada, proporcionando información valiosa sobre lo que fue transmitido.
 """
 
+"""
+Cómo se calcula: Se calcula H(entrada) = -Σ P(entrada) × log₂(P(entrada)) y para cada salida,
+se calcula H(entrada|salida) = -Σ P(entrada|salida) × log₂(P(entrada|salida)). Retorna ambas.
+"""
 def lista_entropias(probs_priori, matriz_canal):
     entropia_priori = 0
     lista_entropia_posteriori = []
@@ -267,6 +302,10 @@ H(A,B)=H(A)+H(B/A)
 -H(B/A)=Nro. mínimo de preguntas binarias en promedio para determinar la salida conocida la entrada. Se lo denomina PERDIDA.
 """
 
+"""
+Cómo se calcula: Equivocación = Σ P(salida) x H(entrada|salida) es la incertidumbre promedio sobre entrada después de observar salida.
+Pérdida = Σ P(entrada) x H(salida|entrada) es el promedio de información perdida condicionada a cada entrada.
+"""
 def calcular_equivocacion(probs_priori, matriz_canal):
     # probs_priori = [P(a1), P(a2), ...]
     # matriz_canal = [[P(b1|a1), P(b2|a1), ...],
@@ -308,6 +347,10 @@ La entropía afín sirve para cuantificar la cantidad total de incertidumbre en 
 incluyendo tanto la fuente de información como el canal.
 """
 
+"""
+Cómo se calcula: Se suman los productos de cada probabilidad conjunta multiplicada por su autoinformación:
+H(entrada,salida) = -Σ P(entrada,salida) × log₂(P(entrada,salida))
+"""
 def calcular_entropia_afin(probs_priori, matriz_canal):
     probs_simultaneas = generar_matriz_eventos_simultaneos(probs_priori, matriz_canal)
     entropia_afin = 0
@@ -349,6 +392,10 @@ La información mutua depende de:
 -Permite elegir el canal adecuado para la transmisión de símbolos generados por una fuente fija
 """
 
+"""
+Cómo se calcula: Se suman los productos de probabilidades conjuntas multiplicadas por el logaritmo de la razón
+entre la probabilidad conjunta y el producto de marginales: I(entrada;salida) = Σ P(entrada,salida) × log₂(P(entrada,salida) / (P(entrada)×P(salida)))
+"""
 def calcular_informacion_mutua(probs_priori, matriz_canal):
     # probs_simultaneas[i][j] = P(A=i, B=j)
     probs_simultaneas = generar_matriz_eventos_simultaneos(probs_priori, matriz_canal)
@@ -370,6 +417,10 @@ def calcular_informacion_mutua(probs_priori, matriz_canal):
     return info_mutua
 
 
+"""
+Cómo se calcula: Se verifica que cada columna de la matriz tenga exactamente un elemento no nulo.
+Si se cumple para todas las columnas, el canal es sin ruido.
+"""
 def es_sin_ruido(matriz_canal):
     n = len(matriz_canal)
     m = len(matriz_canal[0])
@@ -382,6 +433,10 @@ def es_sin_ruido(matriz_canal):
                 return False
     return True
 
+"""
+Cómo se calcula: Se verifica que cada fila de la matriz tenga exactamente un elemento no nulo.
+Si se cumple para todas las filas, el canal es determinante.
+"""
 def es_determinante(matriz_canal):
     n = len(matriz_canal)
     m = len(matriz_canal[0])
@@ -394,6 +449,10 @@ def es_determinante(matriz_canal):
                 return False
     return True
 
+"""
+Cómo se calcula: Se multiplica la matriz A por la matriz B multiplicación de matrices estándar,
+donde cada elemento (i,j) del resultado es la suma de A(i,k) × B(k,j) para todos los k.
+"""
 def generar_matriz_compuesta(A, B):
     if len(A[0]) != len(B):
         raise ValueError("Las matrices no se pueden multiplicar: dimensiones incompatibles")
@@ -411,6 +470,10 @@ def generar_matriz_compuesta(A, B):
 
     return resultado
 
+"""
+Cómo se calcula: Se verifica si existe una constante k tal que todos los elementos de la columna a
+sean iguales a k multiplicado por los elementos correspondientes de la columna b (dentro de tolerancia).
+"""
 def _verificar_proporcionalidad(matriz, col_a, col_b, tol=1e-9):
     k = None  
     for i in range(len(matriz)):
@@ -427,12 +490,20 @@ def _verificar_proporcionalidad(matriz, col_a, col_b, tol=1e-9):
             return False
     return True
 
+"""
+Cómo se calcula: Se verifica que las dos columnas sean proporcionales en al menos una dirección
+(col1 proporcional a col2 o col2 proporcional a col1).
+"""
 def son_columnas_combinables(matriz, col1, col2):
     TOL = 1e-9
     proporcional_dir1 = _verificar_proporcionalidad(matriz, col1, col2, TOL)
     proporcional_dir2 = _verificar_proporcionalidad(matriz, col2, col1, TOL)
     return proporcional_dir1 or proporcional_dir2
 
+"""
+Cómo se calcula: Se crea una matriz de reducción que combinará las columnas col1 y col2 en una sola,
+manteniendo las otras columnas sin cambios.
+"""
 def generar_matriz_determinante(matriz, col1, col2):
     m = len(matriz[0])  # cantidad de columnas de la matriz original
     matriz_determinante = []
@@ -458,6 +529,10 @@ def generar_matriz_determinante(matriz, col1, col2):
 Realiza todas las reducciones suficientes posibles a la matriz del canal
 utilizando las funciones de combinación de columnas.
 """
+"""
+Cómo se calcula: Se buscan iterativamente pares de columnas combinables, se crean matrices de reducción
+para cada par encontrado, se multiplica el canal por esa matriz, y se repite hasta que no haya más reducciones posibles.
+"""
 def generar_matriz_reducida(matriz_de_un_canal):
     matriz_actual = [fila[:] for fila in matriz_de_un_canal]
     while True:
@@ -480,6 +555,10 @@ def generar_matriz_reducida(matriz_de_un_canal):
 """
 Un canal es uniforme si cada fila consiste en una permutación arbitraria de los términos de la primera fila. 
 """
+"""
+Cómo se calcula: Se obtiene la primera fila, se ordena, y se verifica que cada otra fila ordenada
+tenga exactamente los mismos elementos.
+"""
 def es_canal_uniforme(matriz_canal):
     num_filas = len(matriz_canal)
 
@@ -489,6 +568,12 @@ def es_canal_uniforme(matriz_canal):
             return False
     return True
 
+"""
+Cómo se calcula: Según el tipo de canal, se aplica una fórmula diferente:
+- Determinante: C = log₂(número de salidas)
+- Sin ruido: C = log₂(número de entradas)
+- Uniforme: C = log₂(número de entradas) - entropía condicional
+"""
 def calcular_capacidad_canal(matriz_canal):
     if (es_determinante(matriz_canal)):
         capacidad = math.log2(len(matriz_canal[0]))
@@ -532,6 +617,10 @@ def estimar_capacidad_canal_binario(matriz_canal, paso):
     print("Probabilidad asociada: ",probabilidad_asociada)
     return capacidad_estimada, probabilidad_asociada
 
+"""
+Cómo se calcula: Se crea una regla de decisión ML (máxima probabilidad) para cada salida.
+Luego, se calcula la probabilidad de error promediando los errores condicionales ponderados por las probabilidades a priori.
+"""
 def calcular_probabilidad_error(probs_priori, matriz_canal):
     M = len(matriz_canal) 
     if M == 0:
