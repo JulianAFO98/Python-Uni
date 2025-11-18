@@ -417,6 +417,23 @@ def calcular_informacion_mutua(probs_priori, matriz_canal):
     return info_mutua
 
 
+
+"""
+Se denomina “canal sin ruido” a un  canal definido por una matriz con un elemento,
+y solamente uno, distinto de cero en cada columna.
+Que significa un canal sin ruido?
+Significa que cada símbolo de entrada se transmite de manera única y sin ambigüedad a un símbolo de salida específico.
+En otras palabras, no hay incertidumbre ni confusión en la transmisión de los símbolos a través del canal.
+Un canal sin ruido garantiza que cada símbolo de entrada se mapea a un único símbolo de salida, lo que implica una comunicación perfecta sin errores.
+Al observar una salida bj se conoce con certeza el símbolo ai transmitido, es decir las probabilidades condicionales P (ai/bj) son 0 y 1.
+En un canal sin ruido H (A/B) =0
+Las salidas de un canal sin ruido son suficientes por sí mismas para determinar las entradas del canal. 
+Por lo tanto, el número medio del binits necesarios para definir la entrada, una vez conocida la salida, es nulo. 
+Por lo tanto, teniendo en cuenta la definición de Información Mutua,
+en un canal sin ruido se verifica que:I(A,B)=H(A)
+La cantidad de información transmitida por este canal es igual a la incertidumbre total del alfabeto de entrada.
+"""
+
 """
 Cómo se calcula: Se verifica que cada columna de la matriz tenga exactamente un elemento no nulo.
 Si se cumple para todas las columnas, el canal es sin ruido.
@@ -433,6 +450,12 @@ def es_sin_ruido(matriz_canal):
                 return False
     return True
 
+
+"""
+Se denomina “canal determinante” a un canal definido por una matriz con un elemento,
+y solamente uno, distinto de cero en cada fila.
+Luego I(A,B)=H(B). Es decir toda la información generada por la fuente se recoge a la salida del canal.
+"""
 """
 Cómo se calcula: Se verifica que cada fila de la matriz tenga exactamente un elemento no nulo.
 Si se cumple para todas las filas, el canal es determinante.
@@ -449,9 +472,21 @@ def es_determinante(matriz_canal):
                 return False
     return True
 
+
+"""
+Los canales tienden a “perder” información. La información que emerge finalmente de varios canales en serie no puede ser mayor
+que la que emergía de un punto intermedio de la serie, si se pudiera extraer de él.
+La reducción de un canal disminuye (o a lo sumo mantiene constante) 
+la Información mutua entre los alfabetos de entrada y salida. Es el precio que hay que pagar por su simplificación.
+-La condición necesaria y suficiente para que una serie de canales no pierda información es :
+P(a/b)=P(a/c) para  cualquier a, b y c, siempre que P (b, c)  != 0
+-Los símbolos de salida b1 y b2 se combinan sin pérdida de información solamente si las probabilidades a posteriori, 
+P (a/b1) y P (a/b2) son iguales para cualquier valor de a. 
+"""
 """
 Cómo se calcula: Se multiplica la matriz A por la matriz B multiplicación de matrices estándar,
-donde cada elemento (i,j) del resultado es la suma de A(i,k) × B(k,j) para todos los k.
+donde cada elemento (i,j) del resultado es la suma de A(i,k) x B(k,j) para todos los k.
+La matriz del canal compuesto a partir de los canales en serie se obtiene multiplicando las matrices de los canales individuales.
 """
 def generar_matriz_compuesta(A, B):
     if len(A[0]) != len(B):
@@ -490,6 +525,12 @@ def _verificar_proporcionalidad(matriz, col_a, col_b, tol=1e-9):
             return False
     return True
 
+
+"""
+Si la matriz de un canal satisface la relación P(b1/a)=const x P(b2/a) para cualquier a,
+dos cualquiera de sus columnas pueden combinarse, obteniendo una matriz tan buena como la anterior.O sea sin perdida de información.
+Un canal reducido con esta propiedad se denomina Reducción suficiente
+"""
 """
 Cómo se calcula: Se verifica que las dos columnas sean proporcionales en al menos una dirección
 (col1 proporcional a col2 o col2 proporcional a col1).
@@ -500,6 +541,13 @@ def son_columnas_combinables(matriz, col1, col2):
     proporcional_dir2 = _verificar_proporcionalidad(matriz, col2, col1, TOL)
     return proporcional_dir1 or proporcional_dir2
 
+
+"""
+Que es una matriz determinante?
+Es una matriz que combina dos columnas específicas en una sola columna,
+manteniendo las otras columnas sin cambios. Reduciendo asi la dimensionalidad de la matriz del canal.
+Manteniendo la información relevante del canal.
+"""
 """
 Cómo se calcula: Se crea una matriz de reducción que combinará las columnas col1 y col2 en una sola,
 manteniendo las otras columnas sin cambios.
@@ -528,6 +576,7 @@ def generar_matriz_determinante(matriz, col1, col2):
 """
 Realiza todas las reducciones suficientes posibles a la matriz del canal
 utilizando las funciones de combinación de columnas.
+Quedando asi la matriz de menor tamaño posible sin pérdida de información relevante.
 """
 """
 Cómo se calcula: Se buscan iterativamente pares de columnas combinables, se crean matrices de reducción
@@ -554,6 +603,10 @@ def generar_matriz_reducida(matriz_de_un_canal):
 
 """
 Un canal es uniforme si cada fila consiste en una permutación arbitraria de los términos de la primera fila. 
+1/3 1/6 1/2
+1/2 1/3 1/6
+1/6 1/2 1/3
+Caso especial de canal simetrico.
 """
 """
 Cómo se calcula: Se obtiene la primera fila, se ordena, y se verifica que cada otra fila ordenada
@@ -568,6 +621,22 @@ def es_canal_uniforme(matriz_canal):
             return False
     return True
 
+
+"""
+Que es la capacidad de un canal?
+Es la máxima tasa de información que puede ser transmitida a través del canal con una probabilidad arbitrariamente baja de error.
+Es una medida de la eficiencia del canal en términos de transmisión de información.
+La capacidad de un canal representa: 
+-El máximo acople posible entre la entrada y la salida
+-La máxima cantidad de información que puede transmitir el canal
+Para que es útil conocer la capacidad de un canal?
+-Conocer la capacidad de un canal es crucial para diseñar sistemas de comunicación eficientes.
+Que significa una capacidad alta?
+Una capacidad alta indica que el canal puede transmitir una gran cantidad de información de manera eficiente.
+Que significa una capacidad baja?
+Una capacidad baja indica que el canal tiene limitaciones en la cantidad de información que puede transmitir,
+lo que puede afectar la calidad de la comunicación.
+"""
 """
 Cómo se calcula: Según el tipo de canal, se aplica una fórmula diferente:
 - Determinante: C = log₂(número de salidas)
@@ -618,8 +687,23 @@ def estimar_capacidad_canal_binario(matriz_canal, paso):
     return capacidad_estimada, probabilidad_asociada
 
 """
+El segundo teorema de Shannon trata de la cantidad de información sin error que puede obtenerse de un cierto canal. 
+Con objeto de apreciar más claramente el significado del teorema, estudiaremos el problema de la probabilidad de error de un canal.
+La probabilidad de error de un canal será mínima con la regla de decisión que asigna a cada símbolo de salida el símbolo de entrada de
+mayor probabilidad.Esta regla de decisión recibe el nombre de regla de máxima posibilidad condicional. 
+Que significa la probabilidad de error?
+Es la probabilidad de que el símbolo de entrada inferido a partir del símbolo de salida recibido sea incorrecto.
+Una probabilidad de error baja indica que el canal es confiable y que la mayoría de los símbolos de entrada se transmiten correctamente.
+Una probabilidad de error alta indica que el canal introduce muchos errores en la transmisión, lo que puede afectar la calidad de la comunicación.
+Para que sirve conocer la probabilidad de error?
+Conocer la probabilidad de error es crucial para diseñar sistemas de comunicación robustos y eficientes.
+Permite evaluar el rendimiento del canal y tomar decisiones sobre técnicas de corrección de errores y codificación.
+"""
+"""
 Cómo se calcula: Se crea una regla de decisión ML (máxima probabilidad) para cada salida.
 Luego, se calcula la probabilidad de error promediando los errores condicionales ponderados por las probabilidades a priori.
+En otras palabras, se toma la probabilidad de error para cada columna y se suman, multiplicadas por el factor 1/r.
+r = cantidad de filas (símbolos de entrada)
 """
 def calcular_probabilidad_error(probs_priori, matriz_canal):
     M = len(matriz_canal) 
@@ -768,11 +852,15 @@ calcular_informacion_mutua([1/2,1/2],matriz_mult)
 #estimar_capacidad_canal_binario([[0.25,0.75],[0.9,0.1]],0.001)
 #estimar_capacidad_canal_binario([[0.51,0.49],[0.72,0.28]],0.001)
 #estimar_capacidad_canal_binario([[0.77,0.23],[0.2,0.8]],0.0001)
-"""
+
 
 matriz_ejemplo = [[0.6, 0.3,0.1], [0.1, 0.8,0.1],[0.3,0.3,0.4]]
-probs_priori_uniforme = [4/15, 3/15, 8/15]
-
+probs_priori_uniforme = [1/3, 1/3, 1/3]
 prob_error_calculada = calcular_probabilidad_error(probs_priori_uniforme, matriz_ejemplo)
 print("Probabilidad de error calculada:", prob_error_calculada)
-"""
+probs_priori_uniforme = [1/8, 3/8, 4/8]
+prob_error_calculada = calcular_probabilidad_error(probs_priori_uniforme, matriz_ejemplo)
+print("Probabilidad de error calculada:", prob_error_calculada)
+probs_priori_uniforme = [4/15, 3/15, 8/15]
+prob_error_calculada = calcular_probabilidad_error(probs_priori_uniforme, matriz_ejemplo)
+print("Probabilidad de error calculada:", prob_error_calculada)
